@@ -18,11 +18,14 @@ if (isset($_POST['reset'])) {
     // Update the password in the database
     $updatePassword = "UPDATE usersacc SET password='$newPasswordHashed' WHERE email='$email'";
     if ($conn->query($updatePassword) === TRUE) {
-        echo "Password has been reset. Please log in.";
+        echo "<script type='text/javascript'>
+                alert('Password has been reset. Please log in.');
+                window.location.href = 'Login.html';
+                </script>";
         // Clear the session
         session_unset();
         session_destroy();
-        header("Location: Login.html");
+        // header("Location: Login.html");
         exit();
     } else {
         echo "Error updating password: " . $conn->error;

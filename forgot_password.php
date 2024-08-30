@@ -20,13 +20,19 @@ function sendOTP($email, $otp) {
         $mail->Port = 587;
 
         //Recipients
-        $mail->setFrom('pablojaninekarla@gmail.com', 'Your Website');
+        $mail->setFrom('pablojaninekarla@gmail.com', 'Mindsoothe');
         $mail->addAddress($email);
 
         //Content
         $mail->isHTML(true);
         $mail->Subject = 'Password Reset OTP';
-        $mail->Body    = "Your OTP for password reset is <b>$otp</b>. Please do not share it with anyone.";
+        $mail->Body="<b>Dear User,</b>
+            <p>We received a request to reset your password.</p>
+            <p>Your OTP code is <b> $otp </b></p>
+            <p>Please do not share it with anyone.</p>
+            <br><br>
+            <p>With regrads,</p>
+            <b>Mindsoothe</b>";
 
         $mail->send();
         return true;
@@ -56,15 +62,20 @@ if (isset($_POST['resetPassword'])) {
          $_SESSION['email'] = $email;
  
          if (sendOTP($email, $otp)) {
-             echo "OTP has been sent to your email.";
-             // Redirect to a page to enter OTP
-             header("Location: enter_otp.html");
-             exit();
-         } else {
-             echo "Failed to send OTP.";
-         }
-     } else {
-         echo "Email address not found!";
-     }
+            echo "<script type='text/javascript'>
+                    alert('OTP has been sent to your email.');
+                    window.location.href = 'enter_otp.html';
+                  </script>";
+            exit();
+        } else {
+            echo "<script type='text/javascript'>
+                    alert('Failed to send OTP.');
+                  </script>";
+        }
+    } else {
+        echo "<script type='text/javascript'>
+                alert('Email address not found!');
+              </script>";
+    }
  }
  ?>
