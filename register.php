@@ -56,7 +56,11 @@
             header("Location: homepage.php");
             exit();
         } else {
-            echo "Not Found, Incorrect Email or Password";
+            
+            echo "<script type='text/javascript'>
+                alert('Not Found, Incorrect Email or Password');
+                window.location.href = 'Login.html';
+                </script>";
         }
     }
 ?>

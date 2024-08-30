@@ -8,7 +8,10 @@ if (isset($_POST['reset'])) {
 
     // Check if passwords match
     if ($newPassword !== $confirmPassword) {
-        echo "Passwords do not match!";
+        echo "<script type='text/javascript'>
+                alert('Passwords do not match!');
+                window.location.href = 'reset_password.html';
+                </script>";
         exit();
     }
 
