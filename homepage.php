@@ -1,22 +1,22 @@
 <?php
-   session_start();
-   include("connect.php");
-   
-   // Ensure the user is logged in
-   if (!isset($_SESSION['email'])) {
-       header("Location: Login.html");
-       exit();
-   }
-   
-   // Get the user's information
-   $email = $_SESSION['email'];
-   $query = mysqli_query($conn, "SELECT firstName, lastName, profile_image FROM usersacc WHERE email='$email'");
-   $user = mysqli_fetch_assoc($query);
-   $fullName = $user['firstName'] . ' ' . $user['lastName'];
-  
-   $profileImage = $user['profile_image'] ? $user['profile_image'] : '../images/blueuser.svg';
-   $profileImage = 'images/blueuser.svg';
-  
+session_start();
+include("connect.php");
+
+// Ensure the user is logged in
+if (!isset($_SESSION['email'])) {
+    header("Location: Login.html");
+    exit();
+}
+
+// Get the user's information
+$email = $_SESSION['email'];
+$query = mysqli_query($conn, "SELECT firstName, lastName, profile_image FROM usersacc WHERE email='$email'");
+$user = mysqli_fetch_assoc($query);
+$fullName = $user['firstName'] . ' ' . $user['lastName'];
+
+// Determine which profile image to display
+$profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueuser.svg';
+
 ?>
 
 <!DOCTYPE html>
@@ -39,9 +39,8 @@
         </div>
         <div class="profile">
             <div class="profile-menu">
-       
+                <!-- Display Profile Image -->
                 <img src="<?php echo htmlspecialchars($profileImage); ?>" alt="Profile Image">
-
                 <button class="profile-btn"><?php echo htmlspecialchars($fullName); ?> &#9662;</button>
                 <div class="profile-dropdown">
                     <a href="profile.php">Profile</a>
@@ -53,10 +52,10 @@
     </div>
 
     <div style="text-align:center; padding:15%;">
-      <p style="font-size:50px; font-weight:bold;">
-       Hello <?php echo $fullName; ?>:
-      </p>
-      <a href="logout.php">Logout</a>
+        <p style="font-size:50px; font-weight:bold;">
+            Hello <?php echo $fullName; ?>!
+        </p>
+        <a href="logout.php">Logout</a>
     </div>
 
     <script>
