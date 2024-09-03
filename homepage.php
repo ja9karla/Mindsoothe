@@ -30,7 +30,7 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
 <body>
     <div class="navbar">
         <div class="logo">
-            <a href="homepage.php">MyWebsite</a>
+            <a href="homepage.php">Mindsoothe</a>
         </div>
         <div class="nav-links">
             <a href="homepage.php">Home</a>

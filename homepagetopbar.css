@@ -21,7 +21,7 @@ body {
 
 /* Styling for the logo within the navbar */
 .navbar .logo a {
-    color: black;
+    color: #1cabe3;
     text-decoration: none;
     font-size: 24px;
     font-weight: bold;
@@ -29,7 +29,7 @@ body {
 
 /* Styling for navigation links */
 .nav-links a {
-    color: #d9d9d9;
+    color: #1cabe3;
     text-decoration: none;
     padding: 14px 20px;
     display: inline-block;
@@ -38,6 +38,7 @@ body {
 /* Hover effect for navigation links */
 .nav-links a:hover {
     background-color: #575757;
+    color: #fff;
 }
 
 /* Styling for the profile section */
