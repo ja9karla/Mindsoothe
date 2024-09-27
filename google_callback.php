@@ -49,7 +49,7 @@ if (isset($_GET['code'])) {
             $_SESSION['firstName'] = $firstName; // Optional: Store additional user info in session
             $_SESSION['lastName'] = $lastName;   // Optional: Store additional user info in session
             $_SESSION['picture'] = $picture;     // Optional: Store profile picture URL in session
-            header("Location: homepage.php");
+            header("Location: gracefulThread.php");
         } else {
             // User does not exist, insert them into the database
             $insertQuery = "INSERT INTO usersacc (firstName, lastName, email, profile_image) VALUES (?, ?, ?, ?)";
@@ -62,7 +62,7 @@ if (isset($_GET['code'])) {
                 $_SESSION['firstName'] = $firstName;
                 $_SESSION['lastName'] = $lastName;
                 $_SESSION['picture'] = $picture;
-                header("Location: homepage.php");
+                header("Location: gracefulThread.php");
             } else {
                 echo "Error: " . $stmt->error;
             }

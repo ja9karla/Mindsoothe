@@ -53,7 +53,7 @@
             session_start();
             $row = $result->fetch_assoc();
             $_SESSION['email'] = $row['email'];
-            header("Location: homepage.php");
+            header("Location: gracefulThread.php");
             exit();
         } else {
             
