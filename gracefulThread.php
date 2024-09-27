@@ -52,27 +52,8 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
         flex-direction: column;
         border-right: 1px solid #ddd;
     }
-
-    .sidebar.collapsed {
-        width: 60px;
-    }
-
-    .toggle-btn {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        padding: 10px;
-        text-align: left;
-        transition: transform 0.3s;
-    }
-
-    .sidebar.collapsed .toggle-btn {
-        transform: rotate(180deg);
-    }
-
+    
     .menu-content {
-        border-top: 1px solid #ddd;
         display: flex;
         flex-direction: column;
     }
@@ -106,12 +87,6 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
         transition: opacity 0.3s, margin-left 0.3s;
     }
 
-    .sidebar.collapsed .menu-text {
-        opacity: 0;
-        margin-left: -60px;
-        pointer-events: none;
-    }
-
     .user-profile {
         display: flex;
         align-items: center;
@@ -135,12 +110,6 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
         transition: opacity 0.3s, margin-left 0.3s;
     }
 
-    .sidebar.collapsed .username {
-        opacity: 0;
-        margin-left: -60px;
-        pointer-events: none;
-    }
-
     .Logout {
         display: block;
         padding: 15px 20px;
@@ -159,14 +128,31 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
         display: flex;
         flex-direction: column;
     }
+    .logo {
+        padding: 10px;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+    }
+
+    .logo img {
+        width: 235px; /* Adjust the size of the logo */
+        height: 80px;
+        border-bottom: 1px solid #ddd;
+    }
+   
+    
 </style>
 <body>
     <div class="container">
         <!-- Left Sidebar -->
         <div id="sidebar" class="sidebar">
-            <button id="toggleBtn" class="toggle-btn">
+            <!-- <button id="toggleBtn" class="toggle-btn">
                 <img id="toggleIcon" src="images/collaps.svg" alt="Toggle Menu" class="toggle-icon">
-            </button>
+            </button> -->
+            <div class="logo">
+                <img src="image/Mindsoothe (1).svg" alt="Logo" srcset="">
+            </div>
             <div class="menu-content">
                 <a href="#" class="menu-item" id="gracefulThreadItem">
                     <img src="images/gracefulThread.svg" alt="Graceful Thread" class="menu-icon">
