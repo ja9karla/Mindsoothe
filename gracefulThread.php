@@ -140,8 +140,54 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
         height: 80px;
         border-bottom: 1px solid #ddd;
     }
-   
     
+    .main-content {
+        flex-grow: 1;
+        padding: 20px;
+        margin-left: 20px; /* Adjusted to match the sidebar width */
+        transition: margin-left 0.3s;
+    }
+
+    .post-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    .post-input input {
+        flex-grow: 1;
+        padding: 15px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    .post-input button {
+        padding: 15px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #1cabe3;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .post-input button:hover {
+        background-color: #ffffff;
+        color: #1cabe3;
+    }
+
+    .posts {
+        margin-top: 10px;
+    }
+
+    .post {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+        max-width: 1000px; /* Match this width with the text box */
+        box-sizing: border-box;
+    }
 </style>
 <body>
     <div class="container">
