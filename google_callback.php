@@ -39,7 +39,7 @@ if (isset($_GET['code'])) {
         echo "Locale: " . $locale . "<br>";
 
         // Check if user exists in the database
-        $checkUser = "SELECT * FROM usersacc WHERE email='$email'";
+        $checkUser = "SELECT * FROM User_Acc WHERE email='$email'";
         $result = $conn->query($checkUser);
 
         if ($result->num_rows > 0) {
@@ -52,7 +52,7 @@ if (isset($_GET['code'])) {
             header("Location: gracefulThread.php");
         } else {
             // User does not exist, insert them into the database
-            $insertQuery = "INSERT INTO usersacc (firstName, lastName, email, profile_image) VALUES (?, ?, ?, ?)";
+            $insertQuery = "INSERT INTO User_Acc (firstName, lastName, email, profile_image) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($insertQuery);
             $stmt->bind_param("ssss", $firstName, $lastName, $email, $picture);
 

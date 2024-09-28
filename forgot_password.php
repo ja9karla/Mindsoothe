@@ -52,7 +52,7 @@ if (isset($_POST['resetPassword'])) {
     }
 
     // Check if email exists
-    $checkEmail = "SELECT * FROM usersacc WHERE email='$email'";
+    $checkEmail = "SELECT * FROM User_Acc WHERE email='$email'";
     $result = $conn->query($checkEmail);
 
     if ($result->num_rows > 0) {

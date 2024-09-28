@@ -10,7 +10,7 @@ if (!isset($_SESSION['email'])) {
 
 // Get the user's information
 $email = $_SESSION['email'];
-$query = mysqli_query($conn, "SELECT firstName, lastName, profile_image FROM usersacc WHERE email='$email'");
+$query = mysqli_query($conn, "SELECT firstName, lastName, profile_image FROM User_Acc WHERE email='$email'");
 $user = mysqli_fetch_assoc($query);
 $fullName = $user['firstName'] . ' ' . $user['lastName'];
 
@@ -147,9 +147,6 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
     <div class="container">
         <!-- Left Sidebar -->
         <div id="sidebar" class="sidebar">
-            <!-- <button id="toggleBtn" class="toggle-btn">
-                <img id="toggleIcon" src="images/collaps.svg" alt="Toggle Menu" class="toggle-icon">
-            </button> -->
             <div class="logo">
                 <img src="image/Mindsoothe (1).svg" alt="Logo" srcset="">
             </div>
@@ -169,6 +166,17 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
                     <span class="username"><?php echo htmlspecialchars($fullName); ?></span>
                 </a>
                 <a href="logout.php" class="Logout">Logout</a>
+            </div>
+        </div>
+
+         <!-- Main Content Area -->
+         <div class="main-content">
+            <div class="post-input">
+                <input type="text" id="postText" placeholder="What are you grateful for?">
+                <button id="postButton">Post</button>
+            </div>
+            <div class="posts" id="timeline">
+                <!-- Posts will be appended here -->
             </div>
         </div>
     </div>
