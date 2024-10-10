@@ -22,6 +22,7 @@ if (mysqli_num_rows($query) > 0) {
     echo "<p>Error: User not found.</p>";
     exit();
 }
+
 // Handle post submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
     $content = mysqli_real_escape_string($conn, $_POST['postText']);
@@ -31,8 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
         $insertPost = "INSERT INTO Graceful_Thread (user_id, content) VALUES ('$userId', '$content')";
         
         if (mysqli_query($conn, $insertPost)) {
-            // Display success alert
-            echo "<script>alert('Post added successfully!');</script>";
+            // Redirect to the same page to prevent form resubmission on page refresh
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit(); // Ensure no further code is executed
         } else {
             // Display error alert with the MySQL error
             echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
@@ -41,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
         // Display alert for empty content
         echo "<script>alert('Post content cannot be empty!');</script>";
     }
-    
 }
 ?>
 
