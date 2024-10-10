@@ -8,14 +8,41 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
-// Get the user's information
+// Get the user's information based on their email
 $email = $_SESSION['email'];
-$query = mysqli_query($conn, "SELECT firstName, lastName, profile_image FROM User_Acc WHERE email='$email'");
-$user = mysqli_fetch_assoc($query);
-$fullName = $user['firstName'] . ' ' . $user['lastName'];
+$query = mysqli_query($conn, "SELECT id, firstName, lastName, profile_image FROM User_Acc WHERE email='$email'");
 
-// Determine which profile image to display
-$profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueuser.svg';
+// Check if the query returned any results
+if (mysqli_num_rows($query) > 0) {
+    $user = mysqli_fetch_assoc($query);
+    $userId = $user['id']; // This is the user_id you will use for the posts
+    $fullName = $user['firstName'] . ' ' . $user['lastName'];
+    $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueuser.svg';
+} else {
+    echo "<p>Error: User not found.</p>";
+    exit();
+}
+// Handle post submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
+    $content = mysqli_real_escape_string($conn, $_POST['postText']);
+    
+    if (!empty($content)) {
+        // Insert the post into the Graceful_Thread table
+        $insertPost = "INSERT INTO Graceful_Thread (user_id, content) VALUES ('$userId', '$content')";
+        
+        if (mysqli_query($conn, $insertPost)) {
+            // Display success alert
+            echo "<script>alert('Post added successfully!');</script>";
+        } else {
+            // Display error alert with the MySQL error
+            echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
+        }
+    } else {
+        // Display alert for empty content
+        echo "<script>alert('Post content cannot be empty!');</script>";
+    }
+    
+}
 ?>
 
 <!DOCTYPE html>
@@ -44,15 +71,17 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
     .sidebar {
         width: 250px;
         background-color: #f4f4f4;
-        transition: width 0.3s;
-        overflow: hidden;
-        position: relative;
-        height: 100vh;
+        position: fixed; /* Make the sidebar fixed on the left */
+        top: 0; /* Stick to the top */
+        left: 0; /* Stick to the left */
+        height: 100vh; /* Full height of the viewport */
         display: flex;
         flex-direction: column;
         border-right: 1px solid #ddd;
+        overflow-y: auto; /* Add scrolling if the sidebar content overflows */
+        z-index: 1000; /* Ensure it's on top of other content */
     }
-    
+
     .menu-content {
         display: flex;
         flex-direction: column;
@@ -128,6 +157,7 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
         display: flex;
         flex-direction: column;
     }
+
     .logo {
         padding: 10px;
         display: flex;
@@ -144,7 +174,7 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
     .main-content {
         flex-grow: 1;
         padding: 20px;
-        margin-left: 20px; /* Adjusted to match the sidebar width */
+        margin-left: 250px; /* Adjusted to match the sidebar width */
         transition: margin-left 0.3s;
     }
 
@@ -188,7 +218,24 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
         max-width: 1000px; /* Match this width with the text box */
         box-sizing: border-box;
     }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 3px;
+    }
+
+    .post-header .username {
+        margin-right: 10px; /* Add space between username and time */
+        font-size: 14px;
+    }
+
+    .post-header .time {
+        color: gray; /* You can also style the time differently */
+        font-size: 14px; /* Optional: make the time a bit smaller */
+    }
 </style>
+
 <body>
     <div class="container">
         <!-- Left Sidebar -->
@@ -217,12 +264,44 @@ $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueus
 
          <!-- Main Content Area -->
          <div class="main-content">
-            <div class="post-input">
-                <input type="text" id="postText" placeholder="What are you grateful for?">
-                <button id="postButton">Post</button>
-            </div>
+            <form method="POST" action="">
+                <div class="post-input">
+                    <input type="text" id="postText" name="postText" placeholder="What are you grateful for?">
+                    <button type="submit" id="postButton">Post</button>
+                </div>
+            </form>
             <div class="posts" id="timeline">
                 <!-- Posts will be appended here -->
+                <?php
+                // Fetch posts from Graceful_Thread
+                $fetchPosts = mysqli_query($conn, "SELECT GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
+                                                    FROM Graceful_Thread GT 
+                                                    INNER JOIN User_Acc UA ON GT.user_id = UA.id 
+                                                    ORDER BY GT.created_at DESC");
+
+                if (mysqli_num_rows($fetchPosts) > 0) {
+                    while ($post = mysqli_fetch_assoc($fetchPosts)) {
+                        $postUser = $post['firstName'] . ' ' . $post['lastName'];
+                        $postImage = $post['profile_image'] ? $post['profile_image'] : 'images/blueuser.svg';
+                        $postContent = htmlspecialchars($post['content']);
+                        $postTime = date('F j, Y, g:i a', strtotime($post['created_at']));
+                ?>
+                <div class="post">
+                    <div class="post-header">
+                        <img src="<?php echo htmlspecialchars($postImage); ?>" alt="User Avatar" class="user-avatar">
+                        <span class="username"><?php echo htmlspecialchars($postUser); ?></span> 
+                        <span class="time"><?php echo htmlspecialchars($postTime); ?></span>
+                    </div>
+                    <div class="post-content">
+                        <p><?php echo $postContent; ?></p>
+                    </div>
+                </div>
+                <?php
+                    }
+                } else {
+                    echo "<p>No posts yet. Be the first to post!</p>";
+                }
+                ?>
             </div>
         </div>
     </div>
