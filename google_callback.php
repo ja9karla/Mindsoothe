@@ -2,8 +2,13 @@
 require_once 'vendor/autoload.php';
 include 'connect.php'; // Ensure your database connection is included
 
-$clientID = '933379690745-04auqcdqbttk2sfplrhr4bq1ues1hkp6.apps.googleusercontent.com';  // Replace with correct client ID
-$clientSecret = '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';  // Replace with correct client secret
+require 'vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$clientId = getenv('CLIENT_ID');
+$clientSecret = getenv('CLIENT_SECRET');
+
 $redirectUri = 'http://localhost/mindsoothe(1)/google_callback.php';  // Must match registered URI in the Developer Console
 
 $client = new Google_Client();

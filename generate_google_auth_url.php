@@ -1,8 +1,12 @@
 <?php
 require_once 'vendor/autoload.php';
 
-$clientID = '933379690745-04auqcdqbttk2sfplrhr4bq1ues1hkp6.apps.googleusercontent.com';
-$clientSecret = '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';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$clientId = getenv('CLIENT_ID');
+$clientSecret = getenv('CLIENT_SECRET');
+
 $redirectUri = 'http://localhost/mindsoothe(1)/google_callback.php';
 
 $client = new Google_Client();
