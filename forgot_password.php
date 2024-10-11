@@ -14,8 +14,8 @@ function sendOTP($email, $otp) {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com'; // Your SMTP server
         $mail->SMTPAuth = true;
-        $mail->Username = 'pablojaninekarla@gmail.com'; // Your SMTP username
-        $mail->Password = 'hypl zqwy cihu fjxw'; // Your SMTP password
+        $mail->Username = ''; // Your SMTP username
+        $mail->Password = ''; // Your SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
