@@ -7,6 +7,10 @@ use PHPMailer\PHPMailer\Exception;
 
 session_start();
 
+// Load .env file
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 function sendOTP($email, $otp) {
     $mail = new PHPMailer(true);
     try {
@@ -14,8 +18,8 @@ function sendOTP($email, $otp) {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com'; // Your SMTP server
         $mail->SMTPAuth = true;
-        $mail->Username = ''; // Your SMTP username
-        $mail->Password = ''; // Your SMTP password
+        $mail->Username = $_ENV['SMTP_USERNAME']; // Load the SMTP username from the .env file
+        $mail->Password = $_ENV['SMTP_PASSWORD']; // Load the SMTP password from the .env file
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
