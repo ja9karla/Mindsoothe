@@ -10,7 +10,7 @@ if (!isset($_SESSION['email'])) {
 
 // Get the user's information based on their email
 $email = $_SESSION['email'];
-$query = mysqli_query($conn, "SELECT id, firstName, lastName, profile_image FROM User_Acc WHERE email='$email'");
+$query = mysqli_query($conn, "SELECT id, firstName, lastName, profile_image FROM User_Acc1 WHERE email='$email'");
 
 // Check if the query returned any results
 if (mysqli_num_rows($query) > 0) {
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
     
     if (!empty($content)) {
         // Insert the post into the Graceful_Thread table
-        $insertPost = "INSERT INTO Graceful_Thread (user_id, content) VALUES ('$userId', '$content')";
+        $insertPost = "INSERT INTO Graceful_Thread1 (user_id, content) VALUES ('$userId', '$content')";
         
         if (mysqli_query($conn, $insertPost)) {
             // Redirect to the same page to prevent form resubmission on page refresh
@@ -275,10 +275,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
                 <!-- Posts will be appended here -->
                 <?php
                 // Fetch posts from Graceful_Thread
-                $fetchPosts = mysqli_query($conn, "SELECT GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
-                                                    FROM Graceful_Thread GT 
-                                                    INNER JOIN User_Acc UA ON GT.user_id = UA.id 
-                                                    ORDER BY GT.created_at DESC");
+                $fetchPosts = mysqli_query($conn, " SELECT GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
+                                                    FROM Graceful_Thread1 GT 
+                                                    INNER JOIN User_Acc1 UA ON GT.user_id = UA.id 
+                                                    ORDER BY GT.created_at DESC;
+                ");
 
                 if (mysqli_num_rows($fetchPosts) > 0) {
                     while ($post = mysqli_fetch_assoc($fetchPosts)) {

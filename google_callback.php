@@ -2,17 +2,18 @@
 require_once 'vendor/autoload.php';
 include 'connect.php'; // Ensure your database connection is included
 
-require 'vendor/autoload.php';
+// Load environment variables
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-$clientId = getenv('CLIENT_ID');
-$clientSecret = getenv('CLIENT_SECRET');
+// Access credentials from the .env file
+$clientId = $_ENV['CLIENT_ID'];
+$clientSecret = $_ENV['CLIENT_SECRET'];
 
-$redirectUri = 'http://localhost/mindsoothe(1)/google_callback.php';  // Must match registered URI in the Developer Console
+$redirectUri = 'http://localhost/mindsoothe(1)/google_callback.php';
 
 $client = new Google_Client();
-$client->setClientId($clientID);
+$client->setClientId($clientId);
 $client->setClientSecret($clientSecret);
 $client->setRedirectUri($redirectUri);
 $client->addScope("email");
@@ -44,7 +45,7 @@ if (isset($_GET['code'])) {
         echo "Locale: " . $locale . "<br>";
 
         // Check if user exists in the database
-        $checkUser = "SELECT * FROM User_Acc WHERE email='$email'";
+        $checkUser = "SELECT * FROM User_Acc1 WHERE email='$email'";
         $result = $conn->query($checkUser);
 
         if ($result->num_rows > 0) {
@@ -57,7 +58,7 @@ if (isset($_GET['code'])) {
             header("Location: gracefulThread.php");
         } else {
             // User does not exist, insert them into the database
-            $insertQuery = "INSERT INTO User_Acc (firstName, lastName, email, profile_image) VALUES (?, ?, ?, ?)";
+            $insertQuery = "INSERT INTO User_Acc1 (firstName, lastName, email, profile_image) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($insertQuery);
             $stmt->bind_param("ssss", $firstName, $lastName, $email, $picture);
 
