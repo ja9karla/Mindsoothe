@@ -22,7 +22,10 @@
         $result = $conn->query($checkEmail);
 
         if($result->num_rows > 0){
-            echo "Email Address Already Exists!";
+            echo "<script type='text/javascript'>
+                alert('Email Address Already Exists!');
+                window.location.href = 'Login.html';
+                </script>";
         } else {
             $insertQuery = "INSERT INTO User_Acc1 (firstName, lastName, email, password)
                             VALUES ('$firstName', '$lastName', '$email', '$password')";
