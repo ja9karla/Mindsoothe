@@ -44,6 +44,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
         echo "<script>alert('Post content cannot be empty!');</script>";
     }
 }
+    // Handle like/unlike actions
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['like_button'])) {
+        $postId = $_POST['post_id'];
+    
+        // Check if the user has already liked the post
+        $checkLikeQuery = mysqli_query($conn, "SELECT * FROM post_likes WHERE user_id='$userId' AND post_id='$postId'");
+    
+        if (mysqli_num_rows($checkLikeQuery) > 0) {
+            // User has already liked the post, so unlike it (delete the record)
+            $deleteLikeQuery = "DELETE FROM post_likes WHERE user_id='$userId' AND post_id='$postId'";
+            mysqli_query($conn, $deleteLikeQuery);
+     } else {
+            // User hasn't liked the post, so like it (insert a new record)
+            $insertLikeQuery = "INSERT INTO post_likes (user_id, post_id) VALUES ('$userId', '$postId')";
+            mysqli_query($conn, $insertLikeQuery);
+        }
+
+        // Redirect to prevent form resubmission on page refresh
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -52,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Graceful Thread</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css'>
 </head>
 <style>
     * {
@@ -235,6 +259,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
         color: gray; /* You can also style the time differently */
         font-size: 14px; /* Optional: make the time a bit smaller */
     }
+    .post-likes{
+        color: gray; /* You can also style the time differently */
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .liked {
+        color: red;
+    }
+
+    .not-liked {
+        color: gray;
+    }
+
+    .like-button {
+        margin-top: 5px;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+
 </style>
 
 <body>
@@ -272,22 +316,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
                 </div>
             </form>
             <div class="posts" id="timeline">
-                <!-- Posts will be appended here -->
+             <!-- Posts will be appended here -->
                 <?php
-                // Fetch posts from Graceful_Thread
-                $fetchPosts = mysqli_query($conn, " SELECT GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
-                                                    FROM Graceful_Thread1 GT 
-                                                    INNER JOIN User_Acc1 UA ON GT.user_id = UA.id 
-                                                    ORDER BY GT.created_at DESC;
-                ");
+                    // Fetch posts from Graceful_Thread
+                    $fetchPosts = mysqli_query($conn, "SELECT GT.id, GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
+                                                       FROM Graceful_Thread1 GT 
+                                                       INNER JOIN User_Acc1 UA ON GT.user_id = UA.id 
+                                                       ORDER BY GT.created_at DESC");
 
-                if (mysqli_num_rows($fetchPosts) > 0) {
-                    while ($post = mysqli_fetch_assoc($fetchPosts)) {
-                        $postUser = $post['firstName'] . ' ' . $post['lastName'];
-                        $postImage = $post['profile_image'] ? $post['profile_image'] : 'images/blueuser.svg';
-                        $postContent = htmlspecialchars($post['content']);
-                        $postTime = date('F j, Y, g:i a', strtotime($post['created_at']));
+                    if (mysqli_num_rows($fetchPosts) > 0) {
+                       while ($post = mysqli_fetch_assoc($fetchPosts)) {
+                            $postId = $post['id']; // Get the post ID for likes
+                            $postUser = $post['firstName'] . ' ' . $post['lastName'];
+                            $postImage = $post['profile_image'] ? $post['profile_image'] : 'images/blueuser.svg';
+                            $postContent = htmlspecialchars($post['content']);
+                            $postTime = date('F j, Y, g:i a', strtotime($post['created_at']));
+                
+                        // Check if the current user liked this post
+                        $checkLikeQuery = mysqli_query($conn, "SELECT * FROM post_likes WHERE user_id='$userId' AND post_id='$postId'");
+                        $isLiked = mysqli_num_rows($checkLikeQuery) > 0;
+
+                        // Determine the correct Font Awesome icon class for the like button
+                        $iconClass = $isLiked ? 'fas fa-heart liked' : 'far fa-heart not-liked'; // Add color class
+
+                        // Count the number of likes for the post
+                        $likeCountQuery = mysqli_query($conn, "SELECT COUNT(*) AS like_count FROM post_likes WHERE post_id='$postId'");
+                        $likeCountResult = mysqli_fetch_assoc($likeCountQuery);
+                        $likeCount = $likeCountResult['like_count'];
                 ?>
+
                 <div class="post">
                     <div class="post-header">
                         <img src="<?php echo htmlspecialchars($postImage); ?>" alt="User Avatar" class="user-avatar">
@@ -297,14 +354,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
                     <div class="post-content">
                         <p><?php echo $postContent; ?></p>
                     </div>
+
+                    <!-- Add Like Button -->
+                    <div class="post-actions">
+                        <form method="POST" action="">
+                            <input type="hidden" name="post_id" value="<?php echo $postId; ?>">
+                            <!-- Like Button with Font Awesome Heart Icon -->
+                            <button type="submit" name="like_button" class="like-button">
+                                <i class="<?php echo $iconClass; ?>"></i> <!-- This will display the correct heart icon -->
+                            </button>
+                        </form>
+                    </div>
+                    <!-- Display Like Count -->
+                    <div class="post-likes">
+                       <p><?php echo $likeCount; ?> people like this post</p>
+                    </div>
                 </div>
-                <?php
-                    }
-                } else {
-                    echo "<p>No posts yet. Be the first to post!</p>";
+        <?php
                 }
-                ?>
-            </div>
+            } else {
+                echo "<p>No posts yet. Be the first to post!</p>";
+            }
+         ?>
+</div>
         </div>
     </div>
 </body>
