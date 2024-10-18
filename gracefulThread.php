@@ -7,7 +7,7 @@ if (!isset($_SESSION['email'])) {
     header("Location: Login.html");
     exit();
 }
-
+$isLoggedIn = isset($_SESSION['email']);
 // Get the user's information based on their email
 $email = $_SESSION['email'];
 $query = mysqli_query($conn, "SELECT id, firstName, lastName, profile_image FROM User_Acc1 WHERE email='$email'");
@@ -129,6 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
     .menu-item.active {
         background-color: #d0e4f5; /* Highlight color for active item */
         border-left: 4px solid #007bff; /* A left border to indicate active section */
+    }
+    .clicked {
+        background: rgba(217, 217, 217, 0.45);
+        box-shadow: 0px 4px 5px 0px rgba(0, 0, 0, 0.25) inset;
     }
 
     .menu-icon {
@@ -262,10 +266,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
     .post-likes{
         color: gray; /* You can also style the time differently */
         font-size: 14px;
-        margin-top: 5px;
+        margin: 10px 0px 0px;
+        padding: 0;
+        display: inline-block; 
     }
     .liked {
-        color: red;
+        color: #1cabe3;
     }
 
     .not-liked {
@@ -273,10 +279,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
     }
 
     .like-button {
-        margin-top: 5px;
+        margin: 10px 0px 0px;
         border: none;
         background: none;
         cursor: pointer;
+        padding: 0;
+    }
+    .post-actions {
+        display: flex;
+        align-items: inline; /* Vertically align the heart icon and like count */
+        gap: 10px; /* Add space between the icon and the like count */
     }
 
 </style>
@@ -363,12 +375,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
                             <button type="submit" name="like_button" class="like-button">
                                 <i class="<?php echo $iconClass; ?>"></i> <!-- This will display the correct heart icon -->
                             </button>
+                        
+                                <p class="post-likes"><?php echo $likeCount; ?> people like this post</p>
+                           
                         </form>
                     </div>
                     <!-- Display Like Count -->
-                    <div class="post-likes">
-                       <p><?php echo $likeCount; ?> people like this post</p>
-                    </div>
                 </div>
         <?php
                 }
@@ -376,8 +388,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
                 echo "<p>No posts yet. Be the first to post!</p>";
             }
          ?>
-</div>
+            </div>
         </div>
     </div>
+
+    <script>
+        window.onload = function() {
+            // Get login status from PHP
+            const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+
+            // Get the "Graceful-thread" menu item by its ID
+            const gracefulThreadItem = document.getElementById('gracefulThreadItem');
+
+            // If the user is logged in, add the 'clicked' class to "Graceful-thread"
+            if (isLoggedIn) {
+                gracefulThreadItem.classList.add('clicked');
+                console.log('Graceful-thread marked as clicked'); // Debug log
+            } else {
+                console.log('User not logged in'); // Debug log
+            }
+        };
+    </script>
 </body>
 </html>
