@@ -23,13 +23,45 @@ if (mysqli_num_rows($query) > 0) {
     exit();
 }
 
+// Text moderation function
+function moderateText($text) {
+    // List of words/phrases to be flagged
+    $badWords = [
+        'puta', 'bwisit', 'gago', 'tanga', 'bobo', 'salot', 'pekeng', 'bakla', 'gaga', 'putangina',
+        'ang kapal mo', 'mamatay ka na', 'ugok', 'wag ka makialam', 'katangahan', 'loko', 'sira ulo', 
+        'haliparot', 'putangina mo', 'tangina mo', 'chismis', 'mukhang pera', 'patay gutom', 
+        'mang-uuto', 'kasama sa buhay', 'hipokrito', 'unano', 'aswang', 'mangkukulam', 'mayabang', 
+        'malandi', 'hudas', 'maasim ang mukha', 'sugapa', 'maka-appeal', 'bulok', 'tanga ka', 
+        'fuck', 'shit', 'asshole', 'bitch', 'damn', 'cunt', 'motherfucker', 'bastard', 'dick', 
+        'pussy', 'nigga', 'whore', 'slut', 'cocksucker', 'retard', 'crackhead', 'twat', 'fag', 
+        'kike', 'chink', 'gook', 'spic', 'raghead', 'sandnigger', 'dirty Jew', 'wog', 'kaffir', 
+        'nazi', 'towelhead', 'beaner', 'polack', 'dago', 'yid', 'wop', 'cholo', 'gypo', 'prick', 
+        'cunt', 'whore', 'pikey', 'inbred', 'hillbilly', 'redneck'
+    ];
+    
+    
+
+    // Replace flagged words with '#' repeated to match the length of the word
+    foreach ($badWords as $word) {
+        $pattern = '/\b' . preg_quote($word, '/') . '\b/i'; // Case insensitive word boundary matching
+        $text = preg_replace_callback($pattern, function ($matches) {
+            return str_repeat('#', strlen($matches[0])); // Replace with ## repeated for the word length
+        }, $text);
+    }
+
+    return $text;
+}
+
 // Handle post submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
     $content = mysqli_real_escape_string($conn, $_POST['postText']);
     
-    if (!empty($content)) {
-        // Insert the post into the Graceful_Thread table
-        $insertPost = "INSERT INTO Graceful_Thread1 (user_id, content) VALUES ('$userId', '$content')";
+    // Moderate the post content
+    $moderatedContent = moderateText($content);
+
+    if (!empty($moderatedContent)) {
+        // Insert the moderated post into the Graceful_Thread table
+        $insertPost = "INSERT INTO Graceful_Thread1 (user_id, content) VALUES ('$userId', '$moderatedContent')";
         
         if (mysqli_query($conn, $insertPost)) {
             // Redirect to the same page to prevent form resubmission on page refresh
