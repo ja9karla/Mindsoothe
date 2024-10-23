@@ -1,30 +1,8 @@
 <?php
-session_start();
-include("connect.php");
+    include("auth.php");
 
-// Ensure the user is logged in
-if (!isset($_SESSION['email'])) {
-    header("Location: Login.html");
-    exit();
-}
-$isLoggedIn = isset($_SESSION['email']);
-// Get the user's information based on their email
-$email = $_SESSION['email'];
-$query = mysqli_query($conn, "SELECT id, firstName, lastName, profile_image FROM User_Acc1 WHERE email='$email'");
-
-// Check if the query returned any results
-if (mysqli_num_rows($query) > 0) {
-    $user = mysqli_fetch_assoc($query);
-    $userId = $user['id']; // This is the user_id you will use for the posts
-    $fullName = $user['firstName'] . ' ' . $user['lastName'];
-    $profileImage = $user['profile_image'] ? $user['profile_image'] : 'images/blueuser.svg';
-} else {
-    echo "<p>Error: User not found.</p>";
-    exit();
-}
-
-// Text moderation function
-function moderateText($text) {
+    // Text moderation function
+    function moderateText($text) {
     // List of words/phrases to be flagged
     $badWords = [
         'puta', 'bwisit', 'gago', 'tanga', 'bobo', 'salot', 'pekeng', 'bakla', 'gaga', 'putangina',
@@ -40,13 +18,13 @@ function moderateText($text) {
     ];
     
     
-
-    // Replace flagged words with '#' repeated to match the length of the word
+    // Replace flagged words with '[redacted]' and set the detection flag
     foreach ($badWords as $word) {
         $pattern = '/\b' . preg_quote($word, '/') . '\b/i'; // Case insensitive word boundary matching
-        $text = preg_replace_callback($pattern, function ($matches) {
-            return str_repeat('#', strlen($matches[0])); // Replace with ## repeated for the word length
-        }, $text);
+        if (preg_match($pattern, $text)) {
+            $detected = true; // Set flag if bad word is found
+            $text = preg_replace($pattern, '[redacted]', $text);
+        }
     }
 
     return $text;
@@ -337,9 +315,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
                     <img src="images/gracefulThread.svg" alt="Graceful Thread" class="menu-icon">
                     <span class="menu-text">Graceful-thread</span> 
                 </a>
-                <a href="#" class="menu-item" id="sereneMomentsItem">
-                    <img src="images/Vector.svg" alt="Mental Health Professional" class="menu-icon">
-                    <span class="menu-text">Mental Health Professional</span>  
+                <a href="#" class="menu-item" id="MentalWellness">
+                    <img src="images/Vector.svg" alt="Mental Wellness Companion" class="menu-icon">
+                    <span class="menu-text">Mental Wellness Companion</span>  
                 </a>
             </div>
             <div class="UserAcc">
@@ -423,23 +401,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
             </div>
         </div>
     </div>
-
     <script>
-        window.onload = function() {
-            // Get login status from PHP
-            const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
-
-            // Get the "Graceful-thread" menu item by its ID
-            const gracefulThreadItem = document.getElementById('gracefulThreadItem');
-
-            // If the user is logged in, add the 'clicked' class to "Graceful-thread"
-            if (isLoggedIn) {
-                gracefulThreadItem.classList.add('clicked');
-                console.log('Graceful-thread marked as clicked'); // Debug log
-            } else {
-                console.log('User not logged in'); // Debug log
-            }
-        };
+        const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
     </script>
+    <script src="sidebarnav.js"></script>
+
 </body>
 </html>
