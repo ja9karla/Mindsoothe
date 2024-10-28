@@ -1,5 +1,6 @@
 <?php
     include("auth.php");
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -130,7 +131,20 @@
         height: 80px;
         border-bottom: 1px solid #ddd;
     }
+
+    .summary-table {
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .summary-table th, .summary-table td {
+      padding: 0.5rem;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .summary-table th {
+      text-align: left;
+    }
 </style>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
 <body>
     <div class="container">
          <!-- Left Sidebar -->
@@ -158,9 +172,192 @@
         </div>
     </div>
 
+    <!-- Question Modal -->
+    <div class="modal" id="questionModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel"><strong>Patient <span class="text-wrapper-15">Health</span> Questionnaire</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <form id="phqForm" onsubmit="return showResults(event)">
+                <div id="questionContainer" class="mb-4"></div>
+                <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" id="prevBtn" onclick="navigate(-1)">Previous</button>
+                <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigate(1)">Next</button>
+                </div>
+            </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div class="modal" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="resultModalLabel">Results Summary</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <p class="h6">Total Score: <span id="totalScore" class="fw-bold"></span></p>
+            <p class="h6">Depression Level: <span id="depressionLevel" class="fw-bold"></span></p>
+            
+            <div class="result-summary mt-4">
+                <h6>Summary of Responses:</h6>
+                <table class="summary-table">
+                <tr>
+                    <th>Not at all</th>
+                    <td id="notAtAllCount"></td>
+                </tr>
+                <tr>
+                    <th>Several days</th>
+                    <td id="severalDaysCount"></td>
+                </tr>
+                <tr>
+                    <th>More than half the days</th>
+                    <td id="halfDaysCount"></td>
+                </tr>
+                <tr>
+                    <th>Nearly every day</th>
+                    <td id="nearlyEveryDayCount"></td>
+                </tr>
+                </table>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
     <script>
-        const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+        const questions = [
+            "Little interest or pleasure in doing things",
+            "Feeling down, depressed, or hopeless",
+            "Trouble falling or staying asleep, or sleeping too much",
+            "Feeling tired or having little energy",
+            "Poor appetite or overeating",
+            "Feeling bad about yourself or that you are a failure or have let yourself or your family down",
+            "Trouble concentrating on things, such as reading the newspaper or watching television",
+            "Moving or speaking so slowly that other people could have noticed. Or the opposite being so fidgety or restless that you have been moving around a lot more than usual",
+            "Thoughts that you would be better off dead, or of hurting yourself",
+            "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?"
+        ];
+
+        const options = [
+            "Not at all",
+            "Several days",
+            "More than half the day",
+            "Nearly every day"
+        ];
+
+        let currentQuestion = 0;
+        let responses = Array(questions.length).fill(null);  // Stores response per question
+
+        function renderQuestion() {
+            const container = document.getElementById('questionContainer');
+            container.innerHTML = `
+                <h6>${currentQuestion + 1}. ${questions[currentQuestion]}</h6>
+                ${options.map((option, i) => `
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" 
+                        name="response_${currentQuestion}" 
+                        id="option${currentQuestion}_${i}" 
+                        value="${i}" ${responses[currentQuestion] === i ? 'checked' : ''} required>
+                        <label class="form-check-label" for="option${currentQuestion}_${i}">
+                        ${option}
+                        </label>
+                    </div>
+                `).join('')}`;
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.textContent = 'Submit';
+                nextBtn.type = 'submit';
+                nextBtn.onclick = showResults;
+            } else {
+                nextBtn.textContent = 'Next';
+                nextBtn.type = 'button';
+                nextBtn.onclick = () => navigate(1);
+            }
+        }
+
+        function navigate(direction) {
+            const selectedOption = document.querySelector(`input[name="response_${currentQuestion}"]:checked`);
+            if (direction > 0 && !selectedOption) {
+                alert('Please select an option before proceeding.');
+                return;
+            }
+
+            // Save the current response if available
+            if (selectedOption) {
+                responses[currentQuestion] = parseInt(selectedOption.value);
+            }
+
+            currentQuestion = Math.max(0, Math.min(questions.length - 1, currentQuestion + direction));
+            renderQuestion();
+        }
+
+        function calculateDepressionLevel(score) {
+            if (score <= 4) return "Minimal depression";
+            if (score <= 9) return "Mild depression";
+            if (score <= 14) return "Moderate depression";
+            if (score <= 19) return "Moderately Severe depression";
+            return "Severe";
+        }
+
+        function showResults(event) {
+            event.preventDefault();
+
+            // Calculate the total score and response counts
+            const counts = [0, 0, 0, 0];
+            let totalScore = 0;
+
+            responses.forEach(response => {
+                if (response !== null) {
+                    counts[response]++;
+                    totalScore += response;
+                }
+            });
+
+            // Update results in the modal
+            document.getElementById('totalScore').textContent = totalScore;
+            document.getElementById('depressionLevel').textContent = calculateDepressionLevel(totalScore);
+            document.getElementById('notAtAllCount').textContent = counts[0];
+            document.getElementById('severalDaysCount').textContent = counts[1];
+            document.getElementById('halfDaysCount').textContent = counts[2];
+            document.getElementById('nearlyEveryDayCount').textContent = counts[3];
+
+            // Hide the question modal and show results modal
+            const questionModal = bootstrap.Modal.getInstance(document.getElementById('questionModal'));
+            questionModal.hide();
+            
+            const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+            resultModal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', renderQuestion);
+
+        const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;            
+
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="sidebarnav.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuestion();
+                    const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+                if (isLoggedIn) {
+                const questionModal = new bootstrap.Modal(document.getElementById('questionModal'));
+                questionModal.show();
+                }
+        });
+        
+    </script>
 </body>
 </html>
