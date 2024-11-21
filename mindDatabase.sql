@@ -1,0 +1,37 @@
+create database _Mindsoothe;
+use _Mindsoothe;
+
+CREATE TABLE User_Acc (
+id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+firstName VARCHAR(50) NOT NULL,
+lastName VARCHAR(50) NOT NULL,
+email VARCHAR(50) NOT NULL,
+password VARCHAR(50) NOT NULL,
+profile_image VARCHAR(255) DEFAULT 'images/blueuser.svg',
+status TINYINT(1) NOT NULL DEFAULT 0,
+otp VARCHAR(6) DEFAULT NULL
+);
+
+CREATE TABLE Graceful_Thread (
+id INT (10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+user_id INT(10) NOT NULL,
+content TEXT NOT NULL,
+likes INT (10) DEFAULT 0,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (user_id) REFERENCES User_Acc(id) ON DELETE CASCADE
+);
+
+CREATE TABLE post_likes (
+    id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(10) NOT NULL,
+    post_id INT(10) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE phq9_responses (
+    id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(10) NOT NULL,
+    question_number TINYINT(2) NOT NULL,
+    response_score TINYINT(1) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

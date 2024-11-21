@@ -1,7 +1,7 @@
 <?php
-    include("auth.php");
-
+    include("auth.php"); // This will provide the $conn variable for database connection
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -245,36 +245,29 @@
             "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?"
         ];
 
-        const options = [
-            "Not at all",
-            "Several days",
-            "More than half the day",
-            "Nearly every day"
-        ];
-
+        const options = ["Not at all", "Several days", "More than half the day", "Nearly every day"];
         let currentQuestion = 0;
-        let responses = Array(questions.length).fill(null);  // Stores response per question
+        let responses = Array(questions.length).fill(null);  // Stores responses per question
 
+        // Render the current question with options
         function renderQuestion() {
             const container = document.getElementById('questionContainer');
             container.innerHTML = `
                 <h6>${currentQuestion + 1}. ${questions[currentQuestion]}</h6>
                 ${options.map((option, i) => `
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" 
-                        name="response_${currentQuestion}" 
-                        id="option${currentQuestion}_${i}" 
-                        value="${i}" ${responses[currentQuestion] === i ? 'checked' : ''} required>
+                        <input class="form-check-input" type="radio" name="response_${currentQuestion}"
+                            id="option${currentQuestion}_${i}" value="${i}" ${responses[currentQuestion] === i ? 'checked' : ''} required>
                         <label class="form-check-label" for="option${currentQuestion}_${i}">
-                        ${option}
+                            ${option}
                         </label>
                     </div>
-                `).join('')}`;
+                `).join('')}
+            `;
 
-            const prevBtn = document.getElementById('prevBtn');
+            // Update button states
+            document.getElementById('prevBtn').style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
             const nextBtn = document.getElementById('nextBtn');
-            
-            prevBtn.style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
             
             if (currentQuestion === questions.length - 1) {
                 nextBtn.textContent = 'Submit';
@@ -287,14 +280,15 @@
             }
         }
 
+        // Navigate between questions
         function navigate(direction) {
             const selectedOption = document.querySelector(`input[name="response_${currentQuestion}"]:checked`);
+            
             if (direction > 0 && !selectedOption) {
                 alert('Please select an option before proceeding.');
                 return;
             }
 
-            // Save the current response if available
             if (selectedOption) {
                 responses[currentQuestion] = parseInt(selectedOption.value);
             }
@@ -303,7 +297,9 @@
             renderQuestion();
         }
 
+        // Calculate depression level based on total score
         function calculateDepressionLevel(score) {
+            if (score === 0) return "Negative";
             if (score <= 4) return "Minimal depression";
             if (score <= 9) return "Mild depression";
             if (score <= 14) return "Moderate depression";
@@ -311,10 +307,10 @@
             return "Severe";
         }
 
+        // Show results in modal
         function showResults(event) {
             event.preventDefault();
 
-            // Calculate the total score and response counts
             const counts = [0, 0, 0, 0];
             let totalScore = 0;
 
@@ -333,7 +329,6 @@
             document.getElementById('halfDaysCount').textContent = counts[2];
             document.getElementById('nearlyEveryDayCount').textContent = counts[3];
 
-            // Hide the question modal and show results modal
             const questionModal = bootstrap.Modal.getInstance(document.getElementById('questionModal'));
             questionModal.hide();
             
@@ -341,23 +336,21 @@
             resultModal.show();
         }
 
-        document.addEventListener('DOMContentLoaded', renderQuestion);
-
-        const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;            
-
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <script src="sidebarnav.js"></script>
-    <script>
+        // Initialize question rendering on DOM content load
         document.addEventListener('DOMContentLoaded', () => {
             renderQuestion();
-                    const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
-                if (isLoggedIn) {
+
+            const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+            if (isLoggedIn) {
                 const questionModal = new bootstrap.Modal(document.getElementById('questionModal'));
                 questionModal.show();
-                }
+            }
         });
-        
     </script>
+
+    <!-- External scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="sidebarnav.js"></script>
+
 </body>
 </html>
