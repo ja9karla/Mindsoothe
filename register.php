@@ -18,7 +18,7 @@
             exit();
         }
 
-        $checkEmail = "SELECT * FROM User_Acc1 WHERE email='$email'";
+        $checkEmail = "SELECT * FROM Users WHERE email='$email'";
         $result = $conn->query($checkEmail);
 
         if($result->num_rows > 0){
@@ -27,7 +27,7 @@
                 window.location.href = 'Login.html';
                 </script>";
         } else {
-            $insertQuery = "INSERT INTO User_Acc1 (firstName, lastName, email, password)
+            $insertQuery = "INSERT INTO Users (firstName, lastName, email, password)
                             VALUES ('$firstName', '$lastName', '$email', '$password')";
             if($conn->query($insertQuery) === TRUE){
                 header("Location: Login.html");
@@ -49,7 +49,7 @@
             exit();
         }
 
-        $sql = "SELECT * FROM User_Acc1 WHERE email='$email' AND password='$password'";
+        $sql = "SELECT * FROM Users WHERE email='$email' AND password='$password'";
         $result = $conn->query($sql);
 
         if($result->num_rows > 0){

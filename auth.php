@@ -11,7 +11,7 @@ if (!isset($_SESSION['email'])) {
 $isLoggedIn = true;
 // Get the user's information based on their email
 $email = $_SESSION['email'];
-$query = mysqli_query($conn, "SELECT id, firstName, lastName, profile_image FROM User_Acc1 WHERE email='$email'");
+$query = mysqli_query($conn, "SELECT id, firstName, lastName, profile_image FROM Users WHERE email='$email'");
 
 if (mysqli_num_rows($query) > 0) {
     $user = mysqli_fetch_assoc($query);

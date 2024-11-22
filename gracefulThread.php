@@ -14,7 +14,7 @@
         'pussy', 'nigga', 'whore', 'slut', 'cocksucker', 'retard', 'crackhead', 'twat', 'fag', 
         'kike', 'chink', 'gook', 'spic', 'raghead', 'sandnigger', 'dirty Jew', 'wog', 'kaffir', 
         'nazi', 'towelhead', 'beaner', 'polack', 'dago', 'yid', 'wop', 'cholo', 'gypo', 'prick', 
-        'cunt', 'whore', 'pikey', 'inbred', 'hillbilly', 'redneck'
+        'cunt', 'whore', 'pikey', 'inbred', 'hillbilly', 'redneck', 'mamatay'
     ];
     
     
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
 
     if (!empty($moderatedContent)) {
         // Insert the moderated post into the Graceful_Thread table
-        $insertPost = "INSERT INTO Graceful_Thread1 (user_id, content) VALUES ('$userId', '$moderatedContent')";
+        $insertPost = "INSERT INTO GracefulThread (user_id, content) VALUES ('$userId', '$moderatedContent')";
         
         if (mysqli_query($conn, $insertPost)) {
             // Redirect to the same page to prevent form resubmission on page refresh
@@ -342,8 +342,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
                 <?php
                     // Fetch posts from Graceful_Thread
                     $fetchPosts = mysqli_query($conn, "SELECT GT.id, GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
-                                                       FROM Graceful_Thread1 GT 
-                                                       INNER JOIN User_Acc1 UA ON GT.user_id = UA.id 
+                                                       FROM GracefulThread GT 
+                                                       INNER JOIN Users UA ON GT.user_id = UA.id 
                                                        ORDER BY GT.created_at DESC");
 
                     if (mysqli_num_rows($fetchPosts) > 0) {

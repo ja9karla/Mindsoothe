@@ -1,6 +1,7 @@
 <?php
-    include("auth.php"); // This will provide the $conn variable for database connection
-?>
+include("auth.php");
+
+?>          
 
 <!DOCTYPE html>
 <html lang="en">
@@ -230,7 +231,7 @@
         </div>
         </div>
     </div>
-
+    
     <script>
         const questions = [
             "Little interest or pleasure in doing things",
