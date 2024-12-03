@@ -1,7 +1,65 @@
 <?php
 include("auth.php");
 
-?>          
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+
+    // Validate input
+    if (!isset($_POST['responses']) || !isset($_POST['userId'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing required parameters']);
+        exit;
+    }
+
+    $responses = json_decode($_POST['responses'], true);
+    $userId = intval($_POST['userId']); // Use the posted userId
+
+    if (count($responses) !== 10) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid number of responses']);
+        exit;
+    }
+
+    // Calculate total score
+    $totalScore = array_sum($responses);
+
+    // Use prepared statements to prevent SQL injection
+    $query = "INSERT INTO phq9_responses 
+              (user_id, question_1, question_2, question_3, question_4, question_5, 
+               question_6, question_7, question_8, question_9, question_10, total_score) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        echo json_encode(['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error]);
+        exit;
+    }
+
+    // Bind parameters
+    $stmt->bind_param(
+        'iiiiiiiiiiii',
+        $userId,
+        $responses[0],
+        $responses[1],
+        $responses[2],
+        $responses[3],
+        $responses[4],
+        $responses[5],
+        $responses[6],
+        $responses[7],
+        $responses[8],
+        $responses[9],
+        $totalScore
+    );
+
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Response saved successfully', 'totalScore' => $totalScore]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Failed to save response: ' . $stmt->error]);
+    }
+    exit;
+}
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -250,9 +308,40 @@ include("auth.php");
         let currentQuestion = 0;
         let responses = Array(questions.length).fill(null);  // Stores responses per question
 
+        function submitResponses() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'mhp.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.status === 'success') {
+                            alert(`Success! Total Score: ${response.totalScore}`);
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    } catch (e) {
+                        console.error('Parsing error:', e);
+                        alert('Unexpected server response: ' + xhr.responseText);
+                    }
+                }
+            };
+
+            const data = `responses=${encodeURIComponent(JSON.stringify(responses))}&userId=${<?php echo $userId; ?>}`;
+            xhr.send(data);
+        }
+
+
         // Render the current question with options
         function renderQuestion() {
             const container = document.getElementById('questionContainer');
+            if (!container) {
+                console.error('Could not find element with id questionContainer');
+                return;
+            }
+
             container.innerHTML = `
                 <h6>${currentQuestion + 1}. ${questions[currentQuestion]}</h6>
                 ${options.map((option, i) => `
@@ -267,9 +356,16 @@ include("auth.php");
             `;
 
             // Update button states
-            document.getElementById('prevBtn').style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
+            const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
-            
+
+            if (!prevBtn || !nextBtn) {
+                console.error('Could not find elements with ids prevBtn and nextBtn');
+                return;
+            }
+
+            prevBtn.style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
+
             if (currentQuestion === questions.length - 1) {
                 nextBtn.textContent = 'Submit';
                 nextBtn.type = 'submit';
@@ -323,6 +419,12 @@ include("auth.php");
             });
 
             // Update results in the modal
+            const resultModal = document.getElementById('resultModal');
+            if (!resultModal) {
+                console.error('Could not find element with id resultModal');
+                return;
+            }
+
             document.getElementById('totalScore').textContent = totalScore;
             document.getElementById('depressionLevel').textContent = calculateDepressionLevel(totalScore);
             document.getElementById('notAtAllCount').textContent = counts[0];
@@ -333,8 +435,8 @@ include("auth.php");
             const questionModal = bootstrap.Modal.getInstance(document.getElementById('questionModal'));
             questionModal.hide();
             
-            const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
-            resultModal.show();
+            const resultModalInstance = new bootstrap.Modal(resultModal);
+            resultModalInstance.show();
         }
 
         // Initialize question rendering on DOM content load
@@ -347,6 +449,7 @@ include("auth.php");
                 questionModal.show();
             }
         });
+
     </script>
 
     <!-- External scripts -->
