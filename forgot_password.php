@@ -79,6 +79,7 @@ if (isset($_POST['resetPassword'])) {
     } else {
         echo "<script type='text/javascript'>
                 alert('Email address not found!');
+                window.location.href = 'forgot_password.html';
               </script>";
     }
  }
