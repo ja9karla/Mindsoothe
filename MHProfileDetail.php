@@ -231,7 +231,6 @@ if ($result->num_rows > 0) {
     width: 100%;
     flex: 0 0 auto;
     background-color: #f9f9f9;
-    filter: blur(3px);
   }
   
   .intro .date-header {
@@ -551,7 +550,6 @@ if ($result->num_rows > 0) {
     height: 749px;
     top: 202px;
     left: 133px;
-    filter: blur(3px);
   }
   
   .intro .frame-4 {
@@ -1278,6 +1276,360 @@ if ($result->num_rows > 0) {
     .hidden {
         display: none;
     }
+    .content-area {
+    flex: 1;
+    padding: 0 20px;
+}
+
+.profile-card {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    margin-left: 240px;
+    width: 80%;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+}
+
+.profile-header img {
+    width: 150px;
+    height: 200px;
+    border-radius: 10px;
+    object-fit: cover;
+    margin-right: 20px;
+}
+
+.profile-details {
+    flex: 1;
+}
+
+.profile-details h2 {
+    margin-bottom: 10px;
+}
+
+.profile-details p {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.profile-details span {
+    font-weight: bold;
+}
+
+.profile-schedule-container {
+    width: 70%;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 1px;
+    margin-left: 240px;
+    width: 80%;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    background-color: #1CABE3;
+    border-bottom: 1px solid #ddd;
+    
+}
+
+.tab {
+    width: 33.33%;
+    text-align: center;
+    padding: 15px 0;
+    cursor: pointer;
+    font-weight: bold;
+    color: #333;
+}
+
+.tab.active {
+    background-color: #ddd;
+    color: #ffffff;
+    border-bottom: 3px solid #ddd;
+}
+
+.tab-content {
+    padding: 20px;
+    width: 80%;
+}
+
+.tab-content h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.tab-content p {
+    font-size: 16px;
+    color: #666;
+}
+
+.tab-content hr {
+    border: none;
+    border-bottom: 1px solid #ddd;
+    margin: 20px 0;
+}
+
+.content {
+    display: none;
+}
+
+.tab-content .content.active {
+    display: block;
+}
+/* Success Message Animation */
+.success-message {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #67DCC9;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 9999;
+    font-size: 16px;
+    font-weight: 500;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+.success-message.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.success-message.hide {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.write-review-section {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+        width: 130%;
+   
+    }
+
+    .star-rating {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        gap: 4px;
+    }
+
+    .star-rating input {
+        display: none;
+    }
+
+    .star-rating label {
+        font-size: 25px;
+        color: #ddd;
+        cursor: pointer;
+    }
+
+    .star-rating label:before {
+        content: '★';
+    }
+
+    .star-rating input:checked ~ label {
+        color: gold;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: gold;
+    }
+
+    .review-input {
+        width: 100%;
+        min-height: 100px;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        resize: vertical;
+    }
+
+    .submit-review {
+        background-color: #67DCC9;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .submit-review:hover {
+        background-color: #50b3a3;
+    }
+
+        /* Scoped CSS for Calendar in Schedule Tab */
+        #schedule-content .calendar-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px;
+            width: 120%;
+        }
+
+        #schedule-content .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        #schedule-content .calendar-header button {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #schedule-content .month-year {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        #schedule-content .calendar-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #schedule-content .calendar-weekdays {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 9px;
+            color: #666666;
+            font-weight: bold;
+        }
+
+        #schedule-content .calendar-weekdays div {
+            flex-basis: 13%;
+            text-align: center;
+        }
+
+        #schedule-content .calendar-dates {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+
+        .date {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .date:hover {
+            background-color: #67DCC9;
+            color: white;
+        }
+
+
+        /* Time Selection Modal Styles */
+        .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 90%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+        padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto; /* Center modal horizontally */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 300px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20%; /* Move modal lower */
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .time-option {
+            padding: 8px; /* Reduced padding for smaller size */
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .time-option:hover {
+            background-color: #67DCC9;
+            color: white;
+        }
+       
+        .time-option.booked {
+            background-color: #FFA7AC;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            #schedule-content .calendar-header button {
+                font-size: 14px;
+            }
+
+            #schedule-content .calendar-weekdays div,
+            #schedule-content .calendar-dates .date {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #schedule-content .calendar-header {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #schedule-content .calendar-header button {
+                margin-bottom: 10px;
+            }
+        }
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
 <body>
@@ -1307,355 +1659,398 @@ if ($result->num_rows > 0) {
         </div>
     </div>
 
-    <div class="intro">
-      <div class="phq-intro">
-        <div class="overlap">
-          <div class="overlap">
-            <p class="mental-wellness">
-              <span class="span">Mental </span> <span class="text-wrapper-2">Wellness</span> <span class="span"> Companion</span>
-            </p>
-            
-            <div class="date-picker">
-              <div class="base-calendar">
-                <div class="date-header">
-                  <img class="chevron" src="image/chevron-8.svg" />
-                  <div class="div-2">
-                    <div class="december-wrapper"><div class="december">May</div></div>
-                    <div class="div-2"><div class="element">2024</div></div>
-                  </div>
-                  <img class="chevron" src="image/chevron-9.svg" />
+    
+          <div class="content-area">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <img src="images/emily.jpg" alt="Emily Roberts">
+                    <div class="profile-details">
+                        <h2>Emily Roberts</h2>
+                        <p><span>Licensed Mental Health Counselor</span></p>
+                        <p>MAEd | MindCare Psychiatry Associates</p>
+                        <p>Rating: ⭐⭐⭐⭐⭐ (50 Patient Satisfaction Ratings)</p>
+                    </div>
                 </div>
-                <div class="frame-2">
-                  <div class="frame-3">
-                    <div class="work-day"><div class="th">Sun</div></div>
-                    <div class="work-day"><div class="th-2">Mon</div></div>
-                    <div class="work-day"><div class="th-2">Tue</div></div>
-                    <div class="work-day"><div class="th-2">Wed</div></div>
-                    <div class="work-day"><div class="th-2">Thu</div></div>
-                    <div class="work-day"><div class="th-2">Fri</div></div>
-                    <div class="work-day"><div class="th">Sat</div></div>
-                  </div>
-                  <div class="frame-2">
-                    <div class="frame-3">
-                      <div class="calendar-date"></div>
-                      <div class="calendar-date"></div>
-                      <div class="calendar-date"></div>
-                      <div class="calendar-date"></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">1</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">2</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">3</div></div>
-                    </div>
-                    <div class="frame-3">
-                      <div class="calendar-date-2"><div class="element-2">4</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">5</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">6</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">7</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">8</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">9</div></div>
-                      <div class="calendar-date-2"><div class="element-2">10</div></div>
-                    </div>
-                    <div class="frame-3">
-                      <div class="calendar-date-2"><div class="element-2">11</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">23</div></div>
-                      <div class="calendar-date-2">
-                        <div class="text-wrapper-3">13</div>
-                        <div class="ellipse-2"></div>
-                      </div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">14</div></div>
-                      <div class="element-wrapper"><div class="element-3">15</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">16</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">17</div></div>
-                    </div>
-                    <div class="frame-3">
-                      <div class="calendar-date-2"><div class="text-wrapper-3">18</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">19</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">20</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-3">21</div></div>
-                      <div class="calendar-date-3">
-                        <div class="text-wrapper-4">22</div>
-                        <div class="ellipse-3"></div>
-                      </div>
-                      <div class="calendar-date-2"><div class="text-wrapper-4">23</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-4">24</div></div>
-                    </div>
-                    <div class="frame-3">
-                      <div class="calendar-date-2"><div class="text-wrapper-4">25</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-4">26</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-4">27</div></div>
-                      <div class="calendar-date-2"><div class="text-wrapper-4">28</div></div>
-                      <div class="calendar-date-4">
-                        <div class="text-wrapper-4">29</div>
-                        <div class="ellipse-4"></div>
-                      </div>
-                      <div class="div-wrapper"><div class="text-wrapper-4">30</div></div>
-                      <div class="calendar-date"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-          <div class="overlap-2">
-            <div class="frame-4">
-              <img class="subs-free-card" src="image/subs-free-card-4.svg" />
-              <div class="frame-5">
-                <div class="frame-6">
-                  <div class="frame-7">
-                    <img class="dr-pic" src="images/emily.jpg" />
-                    <div class="frame-8">
-                      <div class="text-wrapper-5">Emily Roberts</div>
-                      <div class="licensed-mental">Licensed Mental Health Counselor</div>
-                      <div class="text-wrapper-6">9 years of experience</div>
-                    </div>
-                  </div>
-                  <div class="frame-7">
-                    <div class="frame-9"><div class="text-wrapper-7">Stress</div></div>
-                    <div class="frame-9"><div class="text-wrapper-7">Anxiety</div></div>
-                    <div class="frame-9"><div class="text-wrapper-8">Depression</div></div>
-                  </div>
-                </div>
-                <div class="frame-10"  onclick="window.location.href='MHProfile.php'"><div class="text-wrapper-9">View Profile</div></div>
-              </div>
-            </div>
-          </div>
-            
 
-            <div class="overlap-wrapper">
-              <div class="overlap-3">
-                <p class="instructions-for">
-                  <br>
-                  <br>
-                  <span class="text-wrapper-10">Instructions for Completing the PHQ-9 Questionnaire</span>
-                  <span class="text-wrapper-11">
-                    <br>
-                    <br>1. Answer Each Question: For each question, mark how often you have <br />experienced each issue in
-                    the last two weeks:<br>• Not at all<br>• Several
-                    days<br>• More than half the days<br>• Nearly every day<br /><br>2.
-                    Question 10: Indicate how difficult these problems have made it to do<br />your work, take care of
-                    things at home, or get along with others:<br>• Not difficult at
-                    all<br>• Somewhat difficult<br>• Very
-                    difficult<br>• Extremely difficult<br /><br>3. Seek Help if Needed: If you have
-                    thoughts of self-harm (question 9),<br />please talk to a healthcare professional immediately.</span>
-                </p>
-                <p class="patient-health">
-                  <span class="span">Patient </span>
-                  <span class="text-wrapper-2">Health</span>
-                  <span class="span">Questionnaire</span>
-                </p>
-                <div class="start-btn">
-                <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal1">
-                    Start
-                  </button>
-                </div>         
-              </div>
-            </div>
-        </div>
-      </div>
-    </div>
+            <div class="profile-schedule-container">
+                <div class="tabs">
+                    <div class="tab active" id="profile-tab">Profile</div>
+                    <div class="tab" id="schedule-tab">Schedule</div>
+                    <div class="tab" id="reviews-tab">Rating and Reviews</div>
+                </div>
+                <div class="tab-content">
+                    <div id="profile-content" class="content active">
+                        <h3>Qualifications and experience</h3>
+                        <p>Details about qualifications and experience go here...</p>
+                        <hr>
+                        <h3>Education</h3>
+                        <p>Details about education go here...</p>
+                    </div>
 
-    <!-- Question Modal -->
-    <div class="modal" id="questionModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body p-4">
-                    <h2 class="text-center mb-4">Patient <span style="color: #1CABE3;">Health</span> Questionnaire</h2>
-                    <div class="question-container">
-                        <div class="question-header d-flex mb-4">
-                            <span class="question-number me-2"></span>
-                            <p class="question-text mb-0"></p>
+                    <!-- Schedule Content with Calendar -->
+                    <div id="schedule-content" class="content">
+                        <div class="availability-bar">
+                            <div class="booked-indicator"></div>
                         </div>
-                        <div class="options-container">
-                            <div class="option">
-                                <input type="radio" name="answer" value="0" id="option0">
-                                <label class="option" for="option0">Not at all</label>
+                        <div class="calendar-container">
+                            <!-- Calendar Header with Navigation -->
+                            <div class="calendar-header">
+                                <button class="prev-month">&lt;</button>
+                                <div class="month-year" id="monthYear">February 2024</div>
+                                <button class="next-month">&gt;</button>
                             </div>
-                            <div class="option">
-                                <input type="radio" name="answer" value="1" id="option1">
-                                <label class="option" for="option1">Several days</label>
-                            </div>
-                            <div class="option">
-                                <input type="radio" name="answer" value="2" id="option2">
-                                <label class="option" for="option2">More than half the days</label>
-                            </div>
-                            <div class="option">
-                                <input type="radio" name="answer" value="3" id="option3">
-                                <label class="option" for="option3">Nearly everyday</label>
+
+                            <!-- Calendar Body -->
+                            <div class="calendar-body">
+                                <div class="calendar-weekdays">
+                                    <div>Sun</div>
+                                    <div>Mon</div>
+                                    <div>Tue</div>
+                                    <div>Wed</div>
+                                    <div>Thu</div>
+                                    <div>Fri</div>
+                                    <div>Sat</div>
+                                </div>
+                                <div class="calendar-dates" id="calendarDates">
+                                    <!-- Calendar dates will be dynamically generated -->
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between mt-4">
-                        <button class="btn btn-outline-primary px-4" id="prevBtn">Previous</button>
-                        <button class="btn btn-primary px-4" id="nextBtn">Next</button>
+
+                    <div id="successMessage" class="success-message">
+                             Appointment booked successfully!
                     </div>
-                </div>
-            </div>
+
+                    <!-- Reviews Content -->
+                    <div id="reviews-content" class="content">
+                        <div class="write-review-section">
+                            <h3>Write a Review</h3>
+                            <form id="reviewForm" onsubmit="submitReview(event)">
+                                <div class="star-rating">
+                                    <input type="radio" id="star5" name="rating" value="5" />
+                                    <label for="star5"></label>
+                                    <input type="radio" id="star4" name="rating" value="4" />
+                                    <label for="star4"></label>
+                                    <input type="radio" id="star3" name="rating" value="3" />
+                                    <label for="star3"></label>
+                                    <input type="radio" id="star2" name="rating" value="2" />
+                                    <label for="star2"></label>
+                                    <input type="radio" id="star1" name="rating" value="1" />
+                                    <label for="star1"></label>
+                                </div>
+                                <textarea class="review-input" placeholder="Write your review here..." required></textarea>
+                                <button type="submit" class="submit-review">Submit Review</button>
+                            </form>
+                        </div>
+                    
+                             
+
+    <!-- Time Selection Modal -->
+    <div id="timeModal" class="modal">
+    <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h3>Select Time for Appointment</h3>
+        <div id="timeSlotContainer">
+            <!-- Time slots will be added dynamically -->
         </div>
     </div>
+</div>
+   <script>
+        // Tab Switching Logic
+        function switchTab(clickedTab, contentId) {
+            // Remove 'active' class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
 
-    <!-- Results Modal -->
-    <div class="modal" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body p-4">
-                    <h2 class="text-center mb-4">PHQ-9 Results</h2>
-                    <div class="results-container">
-                        <div class="score-section mb-4">
-                            <h4>Total Score: <span id="totalScore" class="text-primary"></span></h4>
-                            <h5>Depression Severity: <span id="severityLevel" class="text-primary"></span></h5>
-                        </div>
-                        <div class="summary-section">
-                            <h4 class="mb-3">Response Summary</h4>
-                            <div class="summary-table">
-                                <div class="summary-row">
-                                    <span>Not at all:</span>
-                                    <span id="count0"></span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>Several days:</span>
-                                    <span id="count1"></span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>More than half the days:</span>
-                                    <span id="count2"></span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>Nearly everyday:</span>
-                                    <span id="count3"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-4">
-                        <button class="btn btn-primary px-4" data-bs-dismiss="modal" onclick="window.location.href='MHProfile.php'">Choose Your Mentall Wellnes Companion</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            // Add 'active' class to the clicked tab
+            clickedTab.classList.add('active');
 
-    <script>
-        const questions = [
-            "Little interest or pleasure in doing things",
-            "Feeling down, depressed, or hopeless",
-            "Trouble falling or staying asleep, or sleeping too much",
-            "Feeling tired or having little energy",
-            "Poor appetite or overeating",
-            "Feeling bad about yourself or that you are a failure or have let yourself or your family down",
-            "Trouble concentrating on things, such as reading the newspaper or watching television",
-            "Moving or speaking so slowly that other people could have noticed. Or the opposite being so fidgety or restless that you have been moving around a lot more than usual",
-            "Thoughts that you would be better off dead, or of hurting yourself",
-            "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?"
-        ];
-        
-        let currentQuestion = 0;
-        let answers = new Array(questions.length).fill(null);
-        
-        function renderQuestion() {
-            const questionNumber = document.querySelector('.question-number');
-            const questionText = document.querySelector('.question-text');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            
-            questionNumber.textContent = `${currentQuestion + 1}. `;
-            questionText.textContent = questions[currentQuestion];
-            
-            // Clear previous selection
-            document.querySelectorAll('input[name="answer"]').forEach(radio => {
-                radio.checked = false;
-            });
-            
-            // Set previous answer if exists
-            if (answers[currentQuestion] !== null) {
-                document.querySelector(`input[value="${answers[currentQuestion]}"]`).checked = true;
+            // Hide all content sections
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Show the clicked tab's content
+            const contentToShow = document.getElementById(contentId);
+            if (contentToShow) {
+                contentToShow.classList.add('active');
             }
-            
-            // Update button states
-            prevBtn.style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
-            nextBtn.textContent = currentQuestion === questions.length - 1 ? 'Submit' : 'Next';
         }
+
+        // Event listeners for tab switching
+        document.getElementById('profile-tab').addEventListener('click', function() {
+            switchTab(this, 'profile-content');
+        });
+
+        document.getElementById('schedule-tab').addEventListener('click', function() {
+            switchTab(this, 'schedule-content');
+        });
+
+        document.getElementById('reviews-tab').addEventListener('click', function() {
+            switchTab(this, 'reviews-content');
+        });
+
+        // Global variables
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedDay, selectedTime;
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+
+        // Object to store booked times
+        let bookedTimes = {};
+
+        // Function to update the calendar
+        function updateCalendar() {
+            const monthYear = document.getElementById("monthYear");
+            const calendarDates = document.getElementById("calendarDates");
+
+            monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            calendarDates.innerHTML = '';
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const days = daysInMonth(currentMonth, currentYear);
+
+            for (let i = 0; i < firstDay; i++) {
+                calendarDates.innerHTML += `<div class="date"></div>`;
+            }
+
+            for (let day = 1; day <= days; day++) {
+                calendarDates.innerHTML += `<div class="date" data-day="${day}">${day}</div>`;
+            }
+        }
+
+        function openTimeModal(day) {
+    selectedDay = day;
+    const modal = document.getElementById("timeModal");
+    const timeOptionsContainer = document.getElementById("timeSlotContainer");
+    modal.style.display = "block";
+
+    // Clear existing time slots
+    timeOptionsContainer.innerHTML = '';
+
+    const fullDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+    // Define available time slots
+    const timeSlots = [
+        "09:00AM-10:00AM",
+        "10:00AM-11:00AM",
+        "11:00AM-12:00PM",
+        "02:00PM-03:00PM",
+        "03:00PM-04:00PM",
+        "04:00PM-05:00PM"
+    ];
+
+    // Only create and add available time slots
+    timeSlots.forEach(time => {
+        if (!isTimeBooked(fullDate, time)) {
+            const timeOption = document.createElement('div');
+            timeOption.classList.add('time-option');
+            timeOption.setAttribute('data-time', time);
+            timeOption.textContent = time;
+            timeOption.onclick = () => confirmAppointment(time);
+            timeOptionsContainer.appendChild(timeOption);
+        }
+    });
+}
+
+function isTimeBooked(date, time) {
+    return bookedTimes[date] && bookedTimes[date].includes(time);
+}
+
+function confirmAppointment(time) {
+    selectedTime = time;
+    const fullDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+    const confirmation = confirm(`Are you sure you want to book an appointment on ${monthNames[currentMonth]} ${selectedDay}, ${currentYear} at ${time}?`);
+    
+    if (confirmation) {
+        // Save the appointment
+        if (!bookedTimes[fullDate]) {
+            bookedTimes[fullDate] = [];
+        }
+        bookedTimes[fullDate].push(time);
+
+        alert(`Your appointment is booked for ${monthNames[currentMonth]} ${selectedDay}, ${currentYear} at ${time}.`);
+        closeTimeModal();
         
-        document.addEventListener('DOMContentLoaded', () => {
-            renderQuestion();
+        // Save to server
+        saveAppointment(fullDate, time);
+    }
+}
+
+function saveAppointment(appointmentDate, appointmentTime) {
+    const appointmentData = {
+        appointmentDate: appointmentDate,
+        appointmentTime: appointmentTime
+    };
+
+    fetch('save_appointmentD.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            // Add small delay to ensure display:block is processed
+            setTimeout(() => {
+                successMessage.classList.add('show');
+            }, 10);
             
-            const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
-            
-            document.querySelector('.start-btn').addEventListener('click', () => {
-                if (isLoggedIn) {
-                    const questionModal = new bootstrap.Modal(document.getElementById('questionModal'));
-                    currentQuestion = 0;
-                    answers = new Array(questions.length).fill(null);
-                    renderQuestion();
-                    questionModal.show();
-                    document.querySelector('.overlap-3').classList.add('hidden');
-                } else {
-                    window.location.href = 'login.php';
-                }
+            setTimeout(() => {
+                successMessage.classList.add('hide');
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                    successMessage.classList.remove('show', 'hide');
+                }, 300);
+            }, 3000);
+        } else {
+            alert(data.message || 'Error saving appointment');
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while booking the appointment');
+    });
+}
+function closeTimeModal() {
+    document.getElementById("timeModal").style.display = "none";
+}
+        
+        function closeTimeModal() {
+            document.getElementById("timeModal").style.display = "none";
+        }
+
+        document.getElementById('closeModal').addEventListener('click', function() {
+  document.getElementById('timeModal').style.display = 'none';
+});
+
+        // Function to update time slot display
+
+        function updateTimeSlotDisplay(date, time) {
+    const timeOptions = document.querySelectorAll(".time-option");
+    timeOptions.forEach(option => {
+        if (option.getAttribute('data-time') === time) {
+            option.remove();  // Remove the booked time slot
+        }
+    });
+}
+        // Event listeners
+        document.querySelector('.prev-month').addEventListener('click', function() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            updateCalendar();
+        });
+
+        document.querySelector('.next-month').addEventListener('click', function() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            updateCalendar();
+        });
+
+        document.getElementById('calendarDates').addEventListener('click', function(e) {
+            if (e.target.classList.contains('date') && e.target.textContent) {
+                const selectedDay = e.target.getAttribute('data-day');
+                openTimeModal(selectedDay);
+            }
+        });
+
+        // Function to load booked appointments from server
+
+        function loadBookedAppointments() {
+            fetch('get_booked_appointments.php')
+            .then(response => response.json())
+            .then(data => {
+                bookedTimes = data;
+                updateCalendar(); // Refresh the calendar to reflect booked times
+            })
+            .catch((error) => {
+                console.error('Error loading booked appointments:', error);
             });
+        }
+
+        // Initial calls
+        updateCalendar();
+        loadBookedAppointments();
+    </script>
+    <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            const timeOptions = document.querySelectorAll('.time-option');
             
-            document.getElementById('prevBtn').addEventListener('click', () => {
-                if (currentQuestion > 0) {
-                    currentQuestion--;
-                    renderQuestion();
-                }
-            });
-            
-            document.getElementById('nextBtn').addEventListener('click', () => {
-                const selectedAnswer = document.querySelector('input[name="answer"]:checked');
-                if (!selectedAnswer) {
-                    alert('Please select an answer before proceeding.');
-                    return;
-                }
-                
-                answers[currentQuestion] = selectedAnswer.value;
-                
-                if (currentQuestion === questions.length - 1) {
-                    // Submit answers
-                    submitAnswers(answers);
-                } else {
-                    currentQuestion++;
-                    renderQuestion();
-                }
+            timeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    if (this.classList.contains('booked')) {
+                        alert('This time slot is already booked. Please select another time.');
+                    } else {
+                        // Handle selection of available time slot
+                        console.log('Selected time:', this.dataset.time);
+                        // Add your logic here to proceed with the booking
+                    }
+                });
             });
         });
-        
-        function getSeverityLevel(score) {
-            if (score >= 0 && score <= 4) return "None-Minimal";
-            if (score >= 5 && score <= 9) return "Mild";
-            if (score >= 10 && score <= 14) return "Moderate";
-            if (score >= 15 && score <= 19) return "Moderately Severe";
-            return "Severe";
-        }
-
-        function submitAnswers(answers) {
-            // Calculate total score
-            const total = answers.reduce((sum, value) => sum + parseInt(value), 0);
-            
-            // Calculate response counts
-            const counts = answers.reduce((acc, value) => {
-                acc[value] = (acc[value] || 0) + 1;
-                return acc;
-            }, {});
-            
-            // Update results modal
-            document.getElementById('totalScore').textContent = total;
-            document.getElementById('severityLevel').textContent = getSeverityLevel(total);
-            
-            // Update response counts
-            for (let i = 0; i < 4; i++) {
-                document.getElementById(`count${i}`).textContent = counts[i.toString()] || 0;
-            }
-            
-            // Hide question modal and show results modal
-            const questionModal = bootstrap.Modal.getInstance(document.getElementById('questionModal'));
-            questionModal.hide();
-            
-            const resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
-            resultsModal.show();
-        }
-        
     </script>
+    <script>
+        function submitReview(event) {
+    event.preventDefault();
     
-    <!-- External scripts -->
+    // Get the selected rating
+    const rating = document.querySelector('input[name="rating"]:checked');
+    if (!rating) {
+        alert('Please select a rating');
+        return;
+    }
+
+    // Get the review text
+    const reviewText = document.querySelector('.review-input').value;
+    if (!reviewText.trim()) {
+        alert('Please write a review');
+        return;
+    }
+
+    // Create new review element
+    const reviewDiv = document.createElement('div');
+    reviewDiv.className = 'review';
+    
+    // Get the current user's photo and name from the top navbar
+    const userPhoto = document.querySelector('.user-avatar').src;
+    const userName = document.querySelector('.username').textContent;
+
+    reviewDiv.innerHTML = `
+        <img src="${userPhoto}" alt="${userName}" class="reviewer-photo">
+        <div class="review-info">
+            <h4>${userName}</h4>
+            <div class="rating">
+                ${Array(Number(rating.value)).fill('★').join('')}
+            </div>
+            <p>${reviewText}</p>
+        </div>
+    `;
+
+    // Add the new review at the top of the reviews list
+    const reviewsSection = document.querySelector('#reviews-content');
+    const firstReview = reviewsSection.querySelector('.review');
+    reviewsSection.insertBefore(reviewDiv, firstReview);
+
+    // Reset the form
+    document.getElementById('reviewForm').reset();
+
+    // Show success message
+    alert('Your Review is Submitted');
+}
+    </script>
+            
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="sidebarnav.js"></script>
 

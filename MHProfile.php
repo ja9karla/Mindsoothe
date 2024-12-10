@@ -1,77 +1,44 @@
 <?php
 include("auth.php");
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-
-    // Validate input
-    if (!isset($_POST['responses']) || !isset($_POST['userId'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Missing required parameters']);
-        exit;
-    }
-
-    $responses = json_decode($_POST['responses'], true);
-    $userId = intval($_POST['userId']); // Use the posted userId
-
-    if (count($responses) !== 10) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid number of responses']);
-        exit;
-    }
-
-    // Calculate total score
-    $totalScore = array_sum($responses);
-
-    // Use prepared statements to prevent SQL injection
-    $query = "INSERT INTO phq9_responses 
-              (user_id, question_1, question_2, question_3, question_4, question_5, 
-               question_6, question_7, question_8, question_9, question_10, total_score) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    $stmt = $conn->prepare($query);
-    if (!$stmt) {
-        echo json_encode(['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error]);
-        exit;
-    }
-
-    // Bind parameters
-    $stmt->bind_param(
-        'iiiiiiiiiiii',
-        $userId,
-        $responses[0],
-        $responses[1],
-        $responses[2],
-        $responses[3],
-        $responses[4],
-        $responses[5],
-        $responses[6],
-        $responses[7],
-        $responses[8],
-        $responses[9],
-        $totalScore
-    );
-
-    if ($stmt->execute()) {
-        echo json_encode(['status' => 'success', 'message' => 'Response saved successfully', 'totalScore' => $totalScore]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save response: ' . $stmt->error]);
-    }
-    exit;
-}
 
 $sql = "SELECT id, firstName, lastName, specialization, experience FROM MHP WHERE status='approved'";
 $result = $conn->query($sql);
 
-// Store MHP data in an array
-$mhps = [];
-
 if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $mhps[] = $row;
-    }
+  while ($row = $result->fetch_assoc()) {
+      echo '
+      <div class="overlap-2">
+          <div class="frame-4">
+              <img class="subs-free-card" src="image/subs-free-card-4.svg" alt="Card Background" />
+              <div class="frame-5">
+                  <div class="frame-6">
+                      <div class="frame-7">
+                          <img class="dr-pic" src="images/emily.jpg" alt="Profile Picture" />
+                          <div class="frame-8">
+                              <div class="text-wrapper-5">' . htmlspecialchars($row["firstName"] . ' ' . $row["lastName"]) . '</div>
+                              <div class="licensed-mental">' . htmlspecialchars($row["specialization"]) . '</div>
+                              <div class="text-wrapper-6">' . htmlspecialchars($row["experience"]) . ' years of experience</div>
+                          </div>
+                      </div>
+                      <div class="frame-7">
+                          <div class="frame-9"><div class="text-wrapper-7">Stress</div></div>
+                          <div class="frame-9"><div class="text-wrapper-7">Anxiety</div></div>
+                          <div class="frame-9"><div class="text-wrapper-8">Depression</div></div>
+                      </div>
+                  </div>
+                  <div class="frame-10" onclick="window.location.href=\'MHProfileDetail.php?mhp_id=' . $row["id"] . '\'">
+                      <div class="text-wrapper-9">View Profile</div>
+                  </div>
+              </div>
+          </div>
+      </div>';
+  }
 } else {
-    echo "No mental health professionals found.";
+  echo "<p>No mental health professionals found.</p>";
 }
+
+$conn->close();
 
 ?>
 
@@ -231,7 +198,6 @@ if ($result->num_rows > 0) {
     width: 100%;
     flex: 0 0 auto;
     background-color: #f9f9f9;
-    filter: blur(3px);
   }
   
   .intro .date-header {
@@ -545,180 +511,67 @@ if ($result->num_rows > 0) {
     flex-grow: 1;
   }
   
-  .intro .overlap-2 {
-    position: absolute;
-    width: 872px;
-    height: 749px;
-    top: 202px;
-    left: 133px;
-    filter: blur(3px);
-  }
-  
-  .intro .frame-4 {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    position: absolute;
-    top: 1px;
-    left: 180px;
-    opacity: 0.75;
-  }
-  
-  .intro .subs-free-card {
-    position: relative;
-    width: 293px;
-    height: 177px;
-    margin-top: -3px;
-    margin-bottom: -5px;
-    margin-left: -4px;
-    margin-right: -4px;
-  }
-  
-  .intro .frame-5 {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    position: absolute;
-    top: 19px;
-    left: 24px;
-  }
-  
-  .intro .frame-6 {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 16px;
-    position: relative;
-    flex: 0 0 auto;
-  }
-  
-  .intro .frame-7 {
-    display: inline-flex;
-    align-items: flex-start;
-    gap: 16px;
-    position: relative;
-    flex: 0 0 auto;
-  }
-  
-  .intro .dr-pic {
-    position: relative;
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-  }
-  
-  .intro .frame-8 {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    position: relative;
-    flex: 0 0 auto;
-  }
-  
-  .intro .text-wrapper-5 {
-    position: relative;
-    width: fit-content;
-    margin-top: -1px;
-    font-family: "Poppins", Helvetica;
-    font-weight: 400;
-    color: #000000;
-    font-size: 16px;
-    letter-spacing: 0;
-    line-height: normal;
-    white-space: nowrap;
-  }
-  
-  .intro .licensed-mental {
-    position: relative;
-    width: fit-content;
-    font-family: "Poppins", Helvetica;
-    font-weight: 300;
-    color: #000000;
-    font-size: 10px;
-    letter-spacing: 0;
-    line-height: normal;
-    white-space: nowrap;
-  }
-  
-  .intro .text-wrapper-6 {
-    position: relative;
-    width: fit-content;
-    font-family: "Poppins", Helvetica;
-    font-weight: 300;
-    color: #000000;
-    font-size: 12px;
-    letter-spacing: 0;
-    line-height: normal;
-    white-space: nowrap;
-  }
-  
-  .intro .frame-9 {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    padding: 5px 10px;
-    position: relative;
-    flex: 0 0 auto;
-    background-color: #1CABE3;
-    border-radius: 5px;
-    box-shadow: 0px 1px 4px #00000040;
-  }
-  
-  .intro .text-wrapper-7 {
-    position: relative;
-    width: fit-content;
-    margin-top: -1px;
-    font-family: "Poppins", Helvetica;
-    font-weight: 300;
-    color: #000000;
-    font-size: 12px;
-    letter-spacing: 0;
-    line-height: normal;
-    white-space: nowrap;
-  }
-  
-  .intro .text-wrapper-8 {
-    position: relative;
-    width: 67px;
-    margin-top: -1px;
-    font-family: "Poppins", Helvetica;
-    font-weight: 300;
-    color: #000000;
-    font-size: 12px;
-    letter-spacing: 0;
-    line-height: normal;
-  }
-  
-  .intro .frame-10 {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 5px 10px;
-    position: relative;
-    flex: 0 0 auto;
-    background-color: #ffffff;
-    border-radius: 5px;
-    box-shadow: 0px 1px 4px #00000040;
-  }
-  
-  .intro .text-wrapper-9 {
-    position: relative;
-    width: fit-content;
-    margin-top: -1px;
-    font-family: "Poppins", Helvetica;
-    font-weight: 300;
-    color: #1CABE3;
-    font-size: 14px;
-    letter-spacing: 0;
-    line-height: normal;
-    white-space: nowrap;
-  }
+  .overlap-2 {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .frame-4 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .dr-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .text-wrapper-5 {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .licensed-mental {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .text-wrapper-6 {
+            font-size: 14px;
+            color: #555;
+        }
+        .frame-7 {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .frame-9 {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .text-wrapper-9 {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+        .text-wrapper-9:hover {
+            background-color: #0056b3;
+        }
   
   .intro .frame-11 {
     display: inline-flex;
@@ -1283,7 +1136,7 @@ if ($result->num_rows > 0) {
 <body>
     <div class="container">
          <!-- Left Sidebar -->
-         <div id="sidebar" class="sidebar">
+         <!-- <div id="sidebar" class="sidebar">
             <div class="logo">
                 <img src="image/Mindsoothe (1).svg" alt="Logo" srcset="">
             </div>
@@ -1304,7 +1157,7 @@ if ($result->num_rows > 0) {
                 </a>
                 <a href="logout.php" class="Logout">Logout</a>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <div class="intro">
@@ -1395,7 +1248,7 @@ if ($result->num_rows > 0) {
               </div>
             </div>
           </div>
-          <div class="overlap-2">
+          <!-- <div class="overlap-2">
             <div class="frame-4">
               <img class="subs-free-card" src="image/subs-free-card-4.svg" />
               <div class="frame-5">
@@ -1414,247 +1267,11 @@ if ($result->num_rows > 0) {
                     <div class="frame-9"><div class="text-wrapper-8">Depression</div></div>
                   </div>
                 </div>
-                <div class="frame-10"  onclick="window.location.href='MHProfile.php'"><div class="text-wrapper-9">View Profile</div></div>
+                <div class="frame-10"  onclick="window.location.href='MHProfileDetail.php'"><div class="text-wrapper-9">View Profile</div></div>
               </div>
             </div>
-          </div>
-            
-
-            <div class="overlap-wrapper">
-              <div class="overlap-3">
-                <p class="instructions-for">
-                  <br>
-                  <br>
-                  <span class="text-wrapper-10">Instructions for Completing the PHQ-9 Questionnaire</span>
-                  <span class="text-wrapper-11">
-                    <br>
-                    <br>1. Answer Each Question: For each question, mark how often you have <br />experienced each issue in
-                    the last two weeks:<br>• Not at all<br>• Several
-                    days<br>• More than half the days<br>• Nearly every day<br /><br>2.
-                    Question 10: Indicate how difficult these problems have made it to do<br />your work, take care of
-                    things at home, or get along with others:<br>• Not difficult at
-                    all<br>• Somewhat difficult<br>• Very
-                    difficult<br>• Extremely difficult<br /><br>3. Seek Help if Needed: If you have
-                    thoughts of self-harm (question 9),<br />please talk to a healthcare professional immediately.</span>
-                </p>
-                <p class="patient-health">
-                  <span class="span">Patient </span>
-                  <span class="text-wrapper-2">Health</span>
-                  <span class="span">Questionnaire</span>
-                </p>
-                <div class="start-btn">
-                <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal1">
-                    Start
-                  </button>
-                </div>         
-              </div>
-            </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Question Modal -->
-    <div class="modal" id="questionModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body p-4">
-                    <h2 class="text-center mb-4">Patient <span style="color: #1CABE3;">Health</span> Questionnaire</h2>
-                    <div class="question-container">
-                        <div class="question-header d-flex mb-4">
-                            <span class="question-number me-2"></span>
-                            <p class="question-text mb-0"></p>
-                        </div>
-                        <div class="options-container">
-                            <div class="option">
-                                <input type="radio" name="answer" value="0" id="option0">
-                                <label class="option" for="option0">Not at all</label>
-                            </div>
-                            <div class="option">
-                                <input type="radio" name="answer" value="1" id="option1">
-                                <label class="option" for="option1">Several days</label>
-                            </div>
-                            <div class="option">
-                                <input type="radio" name="answer" value="2" id="option2">
-                                <label class="option" for="option2">More than half the days</label>
-                            </div>
-                            <div class="option">
-                                <input type="radio" name="answer" value="3" id="option3">
-                                <label class="option" for="option3">Nearly everyday</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-4">
-                        <button class="btn btn-outline-primary px-4" id="prevBtn">Previous</button>
-                        <button class="btn btn-primary px-4" id="nextBtn">Next</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Results Modal -->
-    <div class="modal" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body p-4">
-                    <h2 class="text-center mb-4">PHQ-9 Results</h2>
-                    <div class="results-container">
-                        <div class="score-section mb-4">
-                            <h4>Total Score: <span id="totalScore" class="text-primary"></span></h4>
-                            <h5>Depression Severity: <span id="severityLevel" class="text-primary"></span></h5>
-                        </div>
-                        <div class="summary-section">
-                            <h4 class="mb-3">Response Summary</h4>
-                            <div class="summary-table">
-                                <div class="summary-row">
-                                    <span>Not at all:</span>
-                                    <span id="count0"></span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>Several days:</span>
-                                    <span id="count1"></span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>More than half the days:</span>
-                                    <span id="count2"></span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>Nearly everyday:</span>
-                                    <span id="count3"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-4">
-                        <button class="btn btn-primary px-4" data-bs-dismiss="modal" onclick="window.location.href='MHProfile.php'">Choose Your Mentall Wellnes Companion</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const questions = [
-            "Little interest or pleasure in doing things",
-            "Feeling down, depressed, or hopeless",
-            "Trouble falling or staying asleep, or sleeping too much",
-            "Feeling tired or having little energy",
-            "Poor appetite or overeating",
-            "Feeling bad about yourself or that you are a failure or have let yourself or your family down",
-            "Trouble concentrating on things, such as reading the newspaper or watching television",
-            "Moving or speaking so slowly that other people could have noticed. Or the opposite being so fidgety or restless that you have been moving around a lot more than usual",
-            "Thoughts that you would be better off dead, or of hurting yourself",
-            "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?"
-        ];
-        
-        let currentQuestion = 0;
-        let answers = new Array(questions.length).fill(null);
-        
-        function renderQuestion() {
-            const questionNumber = document.querySelector('.question-number');
-            const questionText = document.querySelector('.question-text');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            
-            questionNumber.textContent = `${currentQuestion + 1}. `;
-            questionText.textContent = questions[currentQuestion];
-            
-            // Clear previous selection
-            document.querySelectorAll('input[name="answer"]').forEach(radio => {
-                radio.checked = false;
-            });
-            
-            // Set previous answer if exists
-            if (answers[currentQuestion] !== null) {
-                document.querySelector(`input[value="${answers[currentQuestion]}"]`).checked = true;
-            }
-            
-            // Update button states
-            prevBtn.style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
-            nextBtn.textContent = currentQuestion === questions.length - 1 ? 'Submit' : 'Next';
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            renderQuestion();
-            
-            const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
-            
-            document.querySelector('.start-btn').addEventListener('click', () => {
-                if (isLoggedIn) {
-                    const questionModal = new bootstrap.Modal(document.getElementById('questionModal'));
-                    currentQuestion = 0;
-                    answers = new Array(questions.length).fill(null);
-                    renderQuestion();
-                    questionModal.show();
-                    document.querySelector('.overlap-3').classList.add('hidden');
-                } else {
-                    window.location.href = 'login.php';
-                }
-            });
-            
-            document.getElementById('prevBtn').addEventListener('click', () => {
-                if (currentQuestion > 0) {
-                    currentQuestion--;
-                    renderQuestion();
-                }
-            });
-            
-            document.getElementById('nextBtn').addEventListener('click', () => {
-                const selectedAnswer = document.querySelector('input[name="answer"]:checked');
-                if (!selectedAnswer) {
-                    alert('Please select an answer before proceeding.');
-                    return;
-                }
-                
-                answers[currentQuestion] = selectedAnswer.value;
-                
-                if (currentQuestion === questions.length - 1) {
-                    // Submit answers
-                    submitAnswers(answers);
-                } else {
-                    currentQuestion++;
-                    renderQuestion();
-                }
-            });
-        });
-        
-        function getSeverityLevel(score) {
-            if (score >= 0 && score <= 4) return "None-Minimal";
-            if (score >= 5 && score <= 9) return "Mild";
-            if (score >= 10 && score <= 14) return "Moderate";
-            if (score >= 15 && score <= 19) return "Moderately Severe";
-            return "Severe";
-        }
-
-        function submitAnswers(answers) {
-            // Calculate total score
-            const total = answers.reduce((sum, value) => sum + parseInt(value), 0);
-            
-            // Calculate response counts
-            const counts = answers.reduce((acc, value) => {
-                acc[value] = (acc[value] || 0) + 1;
-                return acc;
-            }, {});
-            
-            // Update results modal
-            document.getElementById('totalScore').textContent = total;
-            document.getElementById('severityLevel').textContent = getSeverityLevel(total);
-            
-            // Update response counts
-            for (let i = 0; i < 4; i++) {
-                document.getElementById(`count${i}`).textContent = counts[i.toString()] || 0;
-            }
-            
-            // Hide question modal and show results modal
-            const questionModal = bootstrap.Modal.getInstance(document.getElementById('questionModal'));
-            questionModal.hide();
-            
-            const resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
-            resultsModal.show();
-        }
-        
-    </script>
-    
+          </div> -->
+           
     <!-- External scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="sidebarnav.js"></script>
