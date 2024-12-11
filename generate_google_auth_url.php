@@ -20,5 +20,3 @@ $client->addScope("profile");
 
 echo $client->createAuthUrl();
 ?>
-
-

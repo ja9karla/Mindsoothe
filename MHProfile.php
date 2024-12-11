@@ -1,47 +1,6 @@
 <?php
-include("auth.php");
-
-
-$sql = "SELECT id, firstName, lastName, specialization, experience FROM MHP WHERE status='approved'";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-  while ($row = $result->fetch_assoc()) {
-      echo '
-      <div class="overlap-2">
-          <div class="frame-4">
-              <img class="subs-free-card" src="image/subs-free-card-4.svg" alt="Card Background" />
-              <div class="frame-5">
-                  <div class="frame-6">
-                      <div class="frame-7">
-                          <img class="dr-pic" src="images/emily.jpg" alt="Profile Picture" />
-                          <div class="frame-8">
-                              <div class="text-wrapper-5">' . htmlspecialchars($row["firstName"] . ' ' . $row["lastName"]) . '</div>
-                              <div class="licensed-mental">' . htmlspecialchars($row["specialization"]) . '</div>
-                              <div class="text-wrapper-6">' . htmlspecialchars($row["experience"]) . ' years of experience</div>
-                          </div>
-                      </div>
-                      <div class="frame-7">
-                          <div class="frame-9"><div class="text-wrapper-7">Stress</div></div>
-                          <div class="frame-9"><div class="text-wrapper-7">Anxiety</div></div>
-                          <div class="frame-9"><div class="text-wrapper-8">Depression</div></div>
-                      </div>
-                  </div>
-                  <div class="frame-10" onclick="window.location.href=\'MHProfileDetail.php?mhp_id=' . $row["id"] . '\'">
-                      <div class="text-wrapper-9">View Profile</div>
-                  </div>
-              </div>
-          </div>
-      </div>';
-  }
-} else {
-  echo "<p>No mental health professionals found.</p>";
-}
-
-$conn->close();
-
+            include("auth.php");
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,7 +98,7 @@ $conn->close();
   .intro .mental-wellness {
     position: absolute;
     width: 772px;
-    top: 125px;
+    top: 65px;
     left: 382px;
     font-family: "Poppins", Helvetica;
     font-weight: 700;
@@ -518,7 +477,9 @@ $conn->close();
             width: 350px;
             padding: 20px;
             text-align: center;
-            position: relative;
+            position: absolute;
+            top: 120px;
+            left: 260px;
         }
         .frame-4 {
             display: flex;
@@ -1136,7 +1097,7 @@ $conn->close();
 <body>
     <div class="container">
          <!-- Left Sidebar -->
-         <!-- <div id="sidebar" class="sidebar">
+         <div id="sidebar" class="sidebar">
             <div class="logo">
                 <img src="image/Mindsoothe (1).svg" alt="Logo" srcset="">
             </div>
@@ -1157,7 +1118,7 @@ $conn->close();
                 </a>
                 <a href="logout.php" class="Logout">Logout</a>
             </div>
-        </div> -->
+        </div>
     </div>
 
     <div class="intro">
@@ -1248,29 +1209,47 @@ $conn->close();
               </div>
             </div>
           </div>
-          <!-- <div class="overlap-2">
-            <div class="frame-4">
-              <img class="subs-free-card" src="image/subs-free-card-4.svg" />
-              <div class="frame-5">
-                <div class="frame-6">
-                  <div class="frame-7">
-                    <img class="dr-pic" src="images/emily.jpg" />
-                    <div class="frame-8">
-                      <div class="text-wrapper-5">Emily Roberts</div>
-                      <div class="licensed-mental">Licensed Mental Health Counselor</div>
-                      <div class="text-wrapper-6">9 years of experience</div>
-                    </div>
-                  </div>
-                  <div class="frame-7">
-                    <div class="frame-9"><div class="text-wrapper-7">Stress</div></div>
-                    <div class="frame-9"><div class="text-wrapper-7">Anxiety</div></div>
-                    <div class="frame-9"><div class="text-wrapper-8">Depression</div></div>
-                  </div>
-                </div>
-                <div class="frame-10"  onclick="window.location.href='MHProfileDetail.php'"><div class="text-wrapper-9">View Profile</div></div>
-              </div>
-            </div>
-          </div> -->
+         
+          <?php
+            $sql = "SELECT id, firstName, lastName, specialization, experience FROM MHP WHERE status='approved'";
+            $result = $conn->query($sql);
+
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo '
+                    <div class="overlap-2">
+                        <div class="frame-4">
+                            <img class="subs-free-card" src="image/subs-free-card-4.svg" alt="Card Background" />
+                            <div class="frame-5">
+                                <div class="frame-6">
+                                    <div class="frame-7">
+                                        <img class="dr-pic" src="images/emily.jpg" alt="Profile Picture" />
+                                        <div class="frame-8">
+                                            <div class="text-wrapper-5">' . htmlspecialchars($row["firstName"] . ' ' . $row["lastName"]) . '</div>
+                                            <div class="licensed-mental">' . htmlspecialchars($row["specialization"]) . '</div>
+                                            <div class="text-wrapper-6">' . htmlspecialchars($row["experience"]) . ' years of experience</div>
+                                        </div>
+                                    </div>
+                                    <div class="frame-7">
+                                        <div class="frame-9"><div class="text-wrapper-7">Stress</div></div>
+                                        <div class="frame-9"><div class="text-wrapper-7">Anxiety</div></div>
+                                        <div class="frame-9"><div class="text-wrapper-8">Depression</div></div>
+                                    </div>
+                                </div>
+                                <div class="frame-10" onclick="window.location.href=\'MHProfileDetail.php?mhp_id=' . $row["id"] . '\'">
+                                    <div class="text-wrapper-9">View Profile</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>';
+                }
+            } else {
+                echo "<p>No mental health professionals found.</p>";
+            }
+
+            $conn->close();
+          ?>
+
            
     <!-- External scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>

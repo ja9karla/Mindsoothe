@@ -172,7 +172,7 @@ if ($result->num_rows > 0) {
   .intro .mental-wellness {
     position: absolute;
     width: 772px;
-    top: 125px;
+    top: 65px;
     left: 382px;
     font-family: "Poppins", Helvetica;
     font-weight: 700;
@@ -865,8 +865,8 @@ if ($result->num_rows > 0) {
     background-color: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0px 1px 8px #000000bf;
-    left: 37%;
-    top: 20%;
+    left: 230px;
+    top: 80px;
   }
   
   .intro .instructions-for {

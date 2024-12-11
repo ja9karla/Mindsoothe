@@ -1758,297 +1758,297 @@ if ($result->num_rows > 0) {
     </div>
 </div>
    <script>
-        // Tab Switching Logic
-        function switchTab(clickedTab, contentId) {
-            // Remove 'active' class from all tabs
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
+              // Tab Switching Logic
+              function switchTab(clickedTab, contentId) {
+                  // Remove 'active' class from all tabs
+                  const tabs = document.querySelectorAll('.tab');
+                  tabs.forEach(tab => tab.classList.remove('active'));
 
-            // Add 'active' class to the clicked tab
-            clickedTab.classList.add('active');
+                  // Add 'active' class to the clicked tab
+                  clickedTab.classList.add('active');
 
-            // Hide all content sections
-            const contents = document.querySelectorAll('.content');
-            contents.forEach(content => content.classList.remove('active'));
+                  // Hide all content sections
+                  const contents = document.querySelectorAll('.content');
+                  contents.forEach(content => content.classList.remove('active'));
 
-            // Show the clicked tab's content
-            const contentToShow = document.getElementById(contentId);
-            if (contentToShow) {
-                contentToShow.classList.add('active');
-            }
-        }
+                  // Show the clicked tab's content
+                  const contentToShow = document.getElementById(contentId);
+                  if (contentToShow) {
+                      contentToShow.classList.add('active');
+                  }
+              }
 
-        // Event listeners for tab switching
-        document.getElementById('profile-tab').addEventListener('click', function() {
-            switchTab(this, 'profile-content');
-        });
+              // Event listeners for tab switching
+              document.getElementById('profile-tab').addEventListener('click', function() {
+                  switchTab(this, 'profile-content');
+              });
 
-        document.getElementById('schedule-tab').addEventListener('click', function() {
-            switchTab(this, 'schedule-content');
-        });
+              document.getElementById('schedule-tab').addEventListener('click', function() {
+                  switchTab(this, 'schedule-content');
+              });
 
-        document.getElementById('reviews-tab').addEventListener('click', function() {
-            switchTab(this, 'reviews-content');
-        });
+              document.getElementById('reviews-tab').addEventListener('click', function() {
+                  switchTab(this, 'reviews-content');
+              });
 
-        // Global variables
-        let currentMonth = new Date().getMonth();
-        let currentYear = new Date().getFullYear();
-        let selectedDay, selectedTime;
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+              // Global variables
+              let currentMonth = new Date().getMonth();
+              let currentYear = new Date().getFullYear();
+              let selectedDay, selectedTime;
+              const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+              const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
 
-        // Object to store booked times
-        let bookedTimes = {};
+              // Object to store booked times
+              let bookedTimes = {};
 
-        // Function to update the calendar
-        function updateCalendar() {
-            const monthYear = document.getElementById("monthYear");
-            const calendarDates = document.getElementById("calendarDates");
+              // Function to update the calendar
+              function updateCalendar() {
+                  const monthYear = document.getElementById("monthYear");
+                  const calendarDates = document.getElementById("calendarDates");
 
-            monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-            calendarDates.innerHTML = '';
+                  monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                  calendarDates.innerHTML = '';
 
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const days = daysInMonth(currentMonth, currentYear);
+                  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+                  const days = daysInMonth(currentMonth, currentYear);
 
-            for (let i = 0; i < firstDay; i++) {
-                calendarDates.innerHTML += `<div class="date"></div>`;
-            }
+                  for (let i = 0; i < firstDay; i++) {
+                      calendarDates.innerHTML += `<div class="date"></div>`;
+                  }
 
-            for (let day = 1; day <= days; day++) {
-                calendarDates.innerHTML += `<div class="date" data-day="${day}">${day}</div>`;
-            }
-        }
+                  for (let day = 1; day <= days; day++) {
+                      calendarDates.innerHTML += `<div class="date" data-day="${day}">${day}</div>`;
+                  }
+              }
 
-        function openTimeModal(day) {
-    selectedDay = day;
-    const modal = document.getElementById("timeModal");
-    const timeOptionsContainer = document.getElementById("timeSlotContainer");
-    modal.style.display = "block";
+              function openTimeModal(day) {
+                selectedDay = day;
+                const modal = document.getElementById("timeModal");
+                const timeOptionsContainer = document.getElementById("timeSlotContainer");
+                modal.style.display = "block";
 
-    // Clear existing time slots
-    timeOptionsContainer.innerHTML = '';
+          // Clear existing time slots
+          timeOptionsContainer.innerHTML = '';
 
-    const fullDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          const fullDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
-    // Define available time slots
-    const timeSlots = [
-        "09:00AM-10:00AM",
-        "10:00AM-11:00AM",
-        "11:00AM-12:00PM",
-        "02:00PM-03:00PM",
-        "03:00PM-04:00PM",
-        "04:00PM-05:00PM"
-    ];
+          // Define available time slots
+          const timeSlots = [
+              "09:00AM-10:00AM",
+              "10:00AM-11:00AM",
+              "11:00AM-12:00PM",
+              "02:00PM-03:00PM",
+              "03:00PM-04:00PM",
+              "04:00PM-05:00PM"
+          ];
 
-    // Only create and add available time slots
-    timeSlots.forEach(time => {
-        if (!isTimeBooked(fullDate, time)) {
-            const timeOption = document.createElement('div');
-            timeOption.classList.add('time-option');
-            timeOption.setAttribute('data-time', time);
-            timeOption.textContent = time;
-            timeOption.onclick = () => confirmAppointment(time);
-            timeOptionsContainer.appendChild(timeOption);
-        }
-    });
-}
+          // Only create and add available time slots
+          timeSlots.forEach(time => {
+              if (!isTimeBooked(fullDate, time)) {
+                  const timeOption = document.createElement('div');
+                  timeOption.classList.add('time-option');
+                  timeOption.setAttribute('data-time', time);
+                  timeOption.textContent = time;
+                  timeOption.onclick = () => confirmAppointment(time);
+                  timeOptionsContainer.appendChild(timeOption);
+              }
+          });
+      }
 
-function isTimeBooked(date, time) {
-    return bookedTimes[date] && bookedTimes[date].includes(time);
-}
+      function isTimeBooked(date, time) {
+          return bookedTimes[date] && bookedTimes[date].includes(time);
+      }
 
-function confirmAppointment(time) {
-    selectedTime = time;
-    const fullDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-    const confirmation = confirm(`Are you sure you want to book an appointment on ${monthNames[currentMonth]} ${selectedDay}, ${currentYear} at ${time}?`);
-    
-    if (confirmation) {
-        // Save the appointment
-        if (!bookedTimes[fullDate]) {
-            bookedTimes[fullDate] = [];
-        }
-        bookedTimes[fullDate].push(time);
+      function confirmAppointment(time) {
+          selectedTime = time;
+          const fullDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+          const confirmation = confirm(`Are you sure you want to book an appointment on ${monthNames[currentMonth]} ${selectedDay}, ${currentYear} at ${time}?`);
+          
+          if (confirmation) {
+              // Save the appointment
+              if (!bookedTimes[fullDate]) {
+                  bookedTimes[fullDate] = [];
+              }
+              bookedTimes[fullDate].push(time);
 
-        alert(`Your appointment is booked for ${monthNames[currentMonth]} ${selectedDay}, ${currentYear} at ${time}.`);
-        closeTimeModal();
-        
-        // Save to server
-        saveAppointment(fullDate, time);
-    }
-}
+              alert(`Your appointment is booked for ${monthNames[currentMonth]} ${selectedDay}, ${currentYear} at ${time}.`);
+              closeTimeModal();
+              
+              // Save to server
+              saveAppointment(fullDate, time);
+          }
+      }
 
-function saveAppointment(appointmentDate, appointmentTime) {
-    const appointmentData = {
-        appointmentDate: appointmentDate,
-        appointmentTime: appointmentTime
-    };
+      function saveAppointment(appointmentDate, appointmentTime) {
+          const appointmentData = {
+              appointmentDate: appointmentDate,
+              appointmentTime: appointmentTime
+          };
 
-    fetch('save_appointmentD.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(appointmentData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const successMessage = document.getElementById('successMessage');
-            successMessage.style.display = 'block';
-            // Add small delay to ensure display:block is processed
-            setTimeout(() => {
-                successMessage.classList.add('show');
-            }, 10);
-            
-            setTimeout(() => {
-                successMessage.classList.add('hide');
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                    successMessage.classList.remove('show', 'hide');
-                }, 300);
-            }, 3000);
-        } else {
-            alert(data.message || 'Error saving appointment');
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        alert('An error occurred while booking the appointment');
-    });
-}
-function closeTimeModal() {
-    document.getElementById("timeModal").style.display = "none";
-}
-        
-        function closeTimeModal() {
-            document.getElementById("timeModal").style.display = "none";
-        }
+          fetch('save_appointmentD.php', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(appointmentData)
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  const successMessage = document.getElementById('successMessage');
+                  successMessage.style.display = 'block';
+                  // Add small delay to ensure display:block is processed
+                  setTimeout(() => {
+                      successMessage.classList.add('show');
+                  }, 10);
+                  
+                  setTimeout(() => {
+                      successMessage.classList.add('hide');
+                      setTimeout(() => {
+                          successMessage.style.display = 'none';
+                          successMessage.classList.remove('show', 'hide');
+                      }, 300);
+                  }, 3000);
+              } else {
+                  alert(data.message || 'Error saving appointment');
+              }
+          })
+          .catch((error) => {
+              console.error('Error:', error);
+              alert('An error occurred while booking the appointment');
+          });
+      }
+      function closeTimeModal() {
+          document.getElementById("timeModal").style.display = "none";
+      }
+              
+              function closeTimeModal() {
+                  document.getElementById("timeModal").style.display = "none";
+              }
 
-        document.getElementById('closeModal').addEventListener('click', function() {
-  document.getElementById('timeModal').style.display = 'none';
-});
+              document.getElementById('closeModal').addEventListener('click', function() {
+        document.getElementById('timeModal').style.display = 'none';
+      });
 
-        // Function to update time slot display
+              // Function to update time slot display
 
-        function updateTimeSlotDisplay(date, time) {
-    const timeOptions = document.querySelectorAll(".time-option");
-    timeOptions.forEach(option => {
-        if (option.getAttribute('data-time') === time) {
-            option.remove();  // Remove the booked time slot
-        }
-    });
-}
-        // Event listeners
-        document.querySelector('.prev-month').addEventListener('click', function() {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            updateCalendar();
-        });
+              function updateTimeSlotDisplay(date, time) {
+          const timeOptions = document.querySelectorAll(".time-option");
+          timeOptions.forEach(option => {
+              if (option.getAttribute('data-time') === time) {
+                  option.remove();  // Remove the booked time slot
+              }
+          });
+      }
+              // Event listeners
+              document.querySelector('.prev-month').addEventListener('click', function() {
+                  currentMonth--;
+                  if (currentMonth < 0) {
+                      currentMonth = 11;
+                      currentYear--;
+                  }
+                  updateCalendar();
+              });
 
-        document.querySelector('.next-month').addEventListener('click', function() {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            updateCalendar();
-        });
+              document.querySelector('.next-month').addEventListener('click', function() {
+                  currentMonth++;
+                  if (currentMonth > 11) {
+                      currentMonth = 0;
+                      currentYear++;
+                  }
+                  updateCalendar();
+              });
 
-        document.getElementById('calendarDates').addEventListener('click', function(e) {
-            if (e.target.classList.contains('date') && e.target.textContent) {
-                const selectedDay = e.target.getAttribute('data-day');
-                openTimeModal(selectedDay);
-            }
-        });
+              document.getElementById('calendarDates').addEventListener('click', function(e) {
+                  if (e.target.classList.contains('date') && e.target.textContent) {
+                      const selectedDay = e.target.getAttribute('data-day');
+                      openTimeModal(selectedDay);
+                  }
+              });
 
-        // Function to load booked appointments from server
+              // Function to load booked appointments from server
 
-        function loadBookedAppointments() {
-            fetch('get_booked_appointments.php')
-            .then(response => response.json())
-            .then(data => {
-                bookedTimes = data;
-                updateCalendar(); // Refresh the calendar to reflect booked times
-            })
-            .catch((error) => {
-                console.error('Error loading booked appointments:', error);
-            });
-        }
+              function loadBookedAppointments() {
+                  fetch('get_booked_appointments.php')
+                  .then(response => response.json())
+                  .then(data => {
+                      bookedTimes = data;
+                      updateCalendar(); // Refresh the calendar to reflect booked times
+                  })
+                  .catch((error) => {
+                      console.error('Error loading booked appointments:', error);
+                  });
+              }
 
-        // Initial calls
-        updateCalendar();
-        loadBookedAppointments();
-    </script>
-    <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            const timeOptions = document.querySelectorAll('.time-option');
-            
-            timeOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    if (this.classList.contains('booked')) {
-                        alert('This time slot is already booked. Please select another time.');
-                    } else {
-                        // Handle selection of available time slot
-                        console.log('Selected time:', this.dataset.time);
-                        // Add your logic here to proceed with the booking
-                    }
-                });
-            });
-        });
-    </script>
-    <script>
-        function submitReview(event) {
-    event.preventDefault();
-    
-    // Get the selected rating
-    const rating = document.querySelector('input[name="rating"]:checked');
-    if (!rating) {
-        alert('Please select a rating');
-        return;
-    }
+              // Initial calls
+              updateCalendar();
+              loadBookedAppointments();
+          </script>
+          <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                  const timeOptions = document.querySelectorAll('.time-option');
+                  
+                  timeOptions.forEach(option => {
+                      option.addEventListener('click', function() {
+                          if (this.classList.contains('booked')) {
+                              alert('This time slot is already booked. Please select another time.');
+                          } else {
+                              // Handle selection of available time slot
+                              console.log('Selected time:', this.dataset.time);
+                              // Add your logic here to proceed with the booking
+                          }
+                      });
+                  });
+              });
+          </script>
+          <script>
+              function submitReview(event) {
+          event.preventDefault();
+          
+          // Get the selected rating
+          const rating = document.querySelector('input[name="rating"]:checked');
+          if (!rating) {
+              alert('Please select a rating');
+              return;
+          }
 
-    // Get the review text
-    const reviewText = document.querySelector('.review-input').value;
-    if (!reviewText.trim()) {
-        alert('Please write a review');
-        return;
-    }
+          // Get the review text
+          const reviewText = document.querySelector('.review-input').value;
+          if (!reviewText.trim()) {
+              alert('Please write a review');
+              return;
+          }
 
-    // Create new review element
-    const reviewDiv = document.createElement('div');
-    reviewDiv.className = 'review';
-    
-    // Get the current user's photo and name from the top navbar
-    const userPhoto = document.querySelector('.user-avatar').src;
-    const userName = document.querySelector('.username').textContent;
+          // Create new review element
+          const reviewDiv = document.createElement('div');
+          reviewDiv.className = 'review';
+          
+          // Get the current user's photo and name from the top navbar
+          const userPhoto = document.querySelector('.user-avatar').src;
+          const userName = document.querySelector('.username').textContent;
 
-    reviewDiv.innerHTML = `
-        <img src="${userPhoto}" alt="${userName}" class="reviewer-photo">
-        <div class="review-info">
-            <h4>${userName}</h4>
-            <div class="rating">
-                ${Array(Number(rating.value)).fill('★').join('')}
-            </div>
-            <p>${reviewText}</p>
-        </div>
-    `;
+          reviewDiv.innerHTML = `
+              <img src="${userPhoto}" alt="${userName}" class="reviewer-photo">
+              <div class="review-info">
+                  <h4>${userName}</h4>
+                  <div class="rating">
+                      ${Array(Number(rating.value)).fill('★').join('')}
+                  </div>
+                  <p>${reviewText}</p>
+              </div>
+          `;
 
-    // Add the new review at the top of the reviews list
-    const reviewsSection = document.querySelector('#reviews-content');
-    const firstReview = reviewsSection.querySelector('.review');
-    reviewsSection.insertBefore(reviewDiv, firstReview);
+          // Add the new review at the top of the reviews list
+          const reviewsSection = document.querySelector('#reviews-content');
+          const firstReview = reviewsSection.querySelector('.review');
+          reviewsSection.insertBefore(reviewDiv, firstReview);
 
-    // Reset the form
-    document.getElementById('reviewForm').reset();
+          // Reset the form
+          document.getElementById('reviewForm').reset();
 
-    // Show success message
-    alert('Your Review is Submitted');
-}
+          // Show success message
+          alert('Your Review is Submitted');
+      }
     </script>
             
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
