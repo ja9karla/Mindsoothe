@@ -192,7 +192,7 @@
         <!-- Questionnaire Instructions -->
         <div id="instructionsContainer" class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
-                PHQ-9 Mental Health Screening
+                <span class="text-[#1cabe3]">PHQ-9</span> Mental <span class="text-[#1cabe3]">Health</span> Screening
             </h2>
 
             <div class="text-center">
@@ -245,7 +245,9 @@
 
                 <!-- Modal Content -->
                 <div class="text-center">
-                    <h2 class="text-xl font-semibold mb-4">Patient Health Questionnaire</h2>
+                    <h2 class="text-xl font-semibold mb-4">
+                        Patient <span class="text-[#1cabe3]">Health</span> Questionnaire
+                    </h2>
                     
                     <div id="questionContainer">
                         <p id="questionText" class="mb-4 text-gray-700"></p>
