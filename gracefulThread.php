@@ -183,7 +183,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 <span class="menu-text ml-3">Logout</span>
-            </a>
+            </a>  
         </div>
     </div>
 
@@ -280,22 +280,24 @@
 
 
     <script>
-              // Section switching functionality
+            // Section switching functionality
             const menuItems = document.querySelectorAll('.menu-item');
             const sections = document.querySelectorAll('.section');
-
+            
             menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    menuItems.forEach(mi => mi.classList.remove('active'));
-                    sections.forEach(section => section.classList.remove('active'));
-                    
-                    this.classList.add('active');
-                    
-                    const sectionId = this.getAttribute('data-section');
-                    document.getElementById(`${sectionId}-section`).classList.add('active');
-                });
+              item.addEventListener('click', function(e) {
+                if (this.getAttribute('data-section')) {
+                  e.preventDefault();
+                  
+                  menuItems.forEach(mi => mi.classList.remove('active'));
+                  sections.forEach(section => section.classList.remove('active'));
+                  
+                  this.classList.add('active');
+                  
+                  const sectionId = this.getAttribute('data-section');
+                  document.getElementById(`${sectionId}-section`).classList.add('active');
+                }
+              });
             });
     </script>
     <script src="sidebarnav.js"></script>

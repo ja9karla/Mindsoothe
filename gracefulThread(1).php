@@ -220,7 +220,7 @@
 
                 <button 
                     id="startQuestionnaire" 
-                    class="bg-white text-[#1cabe3] font-bold border-2 border-[#1cabe3] py-3 px-6 rounded-lg hover:bg-[#1cabe3] hover:text-white transition duration-300 ease-in-out transform hover:scale-105"
+                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
                 >
                     Begin PHQ-9 Questionnaire
                 </button>
@@ -262,12 +262,12 @@
                         >
                             Previous
                         </button>
-                       <button 
-                           id="nextQuestion" 
-                           class="bg-white text-[#1cabe3] font-semibold border-2 border-[#1cabe3] px-4 py-2 rounded hover:bg-[#1cabe3] hover:text-white"
-                       >
-                           Next
-                       </button>
+                        <button 
+                            id="nextQuestion" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Next
+                        </button>
                     </div>
                 </div>
             </div>
@@ -298,7 +298,7 @@
 
                     <button 
                         id="proceedToCompanion"
-                        class="bg-white text-[#1cabe3] font-bold border-2 border-[#1cabe3] px-6 py-3 rounded-lg hover:bg-[#1cabe3] hover:text-white transition duration-300 ease-in-out transform hover:scale-105"
+                        class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition"
                     >
                         Choose Mental Wellness Companion
                     </button>
