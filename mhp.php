@@ -363,44 +363,58 @@
                 answerLabels.forEach((label, index) => {
                     const radioWrapper = document.createElement('div');
                     radioWrapper.classList.add('flex', 'items-center');
-                
+
                     const radio = document.createElement('input');
                     radio.type = 'radio';
-                    radio.name = 'questionAnswer';
+                    radio.name = 'questionAnswer'; // Ensures only one radio button can be selected
                     radio.value = index;
                     radio.id = `answer-${index}`;
                     radio.classList.add('mr-2');
-                    radio.style.display = 'none'; // hide the radio button icon
-                
+                    radio.style.display = 'none'; // Hide the radio button icon
+
                     if (answers[currentQuestionIndex] === index) {
                         radio.checked = true;
                     }
-                
+
                     const radioLabel = document.createElement('label');
                     radioLabel.htmlFor = `answer-${index}`;
                     radioLabel.textContent = label;
                     radioLabel.classList.add('cursor-pointer', 'w-full');
-                
-                    // add styles to the label
+                    radioLabel.style.backgroundColor = '#f9f9f9';
+
+                    // Add styles to the label
                     radioLabel.style.padding = '8px 16px';
                     radioLabel.style.borderRadius = '6px';
                     radioLabel.style.transition = 'all 0.3s ease';
-                
-                    // add styles to the label when radio button is checked
+
+                    // Function to reset all labels' styles
+                    const resetLabelStyles = () => {
+                        document.querySelectorAll('label[for^="answer-"]').forEach((lbl) => {
+                            lbl.style.backgroundColor = '#f9f9f9';
+                            lbl.style.color = 'black';
+                        });
+                    };
+
+                    // Add styles to the label when the radio button is checked
                     radio.addEventListener('change', () => {
                         if (radio.checked) {
+                            resetLabelStyles(); // Reset all other labels
                             radioLabel.style.backgroundColor = '#1CABE3';
                             radioLabel.style.color = 'white';
-                        } else {
-                            radioLabel.style.backgroundColor = '';
-                            radioLabel.style.color = '';
                         }
                     });
-                
+
+                    // Ensure proper initial state
+                    if (radio.checked) {
+                        radioLabel.style.backgroundColor = '#1CABE3';
+                        radioLabel.style.color = 'white';
+                    }
+
                     radioWrapper.appendChild(radio);
                     radioWrapper.appendChild(radioLabel);
                     answerOptions.appendChild(radioWrapper);
                 });
+
 
                 // Update navigation buttons
                 prevButton.style.display = currentQuestionIndex === 0 ? 'none' : 'block';

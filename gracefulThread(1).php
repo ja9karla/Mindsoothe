@@ -113,59 +113,58 @@
     </div>
 
     <!-- Main Content -->
-     <!-- Main Content -->
-<?php
-    $sql = "SELECT id, firstName, lastName, specialization, experience 
-            FROM MHP 
-            WHERE status = 'approved'";
-    $result = $conn->query($sql);
+    <?php
+        $sql = "SELECT id, fname, lname, specialization, experience, profile_image 
+                FROM MHP 
+                WHERE status = 'approved'";
+        $result = $conn->query($sql);
 
-    if ($result->num_rows > 0) {
-        echo '<h1 class="text-2xl font-bold text-center text-gray-800 mt-6 mb-8">
-                <span class="text-[#1cabe3]">PHQ-9</span> Mental <span class="text-[#1cabe3]">Wellness</span> Companion
-              </h1>';
+        if ($result->num_rows > 0) {
+            echo '<h1 class="text-2xl font-bold text-center text-gray-800 mt-6 mb-8">
+                    <span class="text-[#1cabe3]">PHQ-9</span> Mental <span class="text-[#1cabe3]">Wellness</span> Companion
+                </h1>';
 
-        echo '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-20 justify-items-center ml-60">';
+            echo '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-20 justify-items-center ml-60">';
 
-        while ($row = $result->fetch_assoc()) {
-            echo '
-            <div class="bg-white rounded-lg shadow-lg w-80 overflow-hidden transition-transform transform hover:scale-105">
-                <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <img class="w-14 h-14 rounded-full object-cover mr-4" 
-                             src="images/' . htmlspecialchars($row["firstName"]) . '.jpg" 
-                             alt="Profile Picture of ' . htmlspecialchars($row["firstName"]) . '" />
-                        <div>
-                            <div class="text-lg font-bold text-gray-800">' . htmlspecialchars($row["firstName"] . ' ' . $row["lastName"]) . '</div>
-                            <div class="text-sm text-gray-500">' . htmlspecialchars($row["specialization"]) . '</div>
-                            <div class="text-sm text-gray-500">' . htmlspecialchars($row["experience"]) . ' years of experience</div>
+            while ($row = $result->fetch_assoc()) {
+                echo '
+                <div class="bg-white rounded-lg shadow-lg w-80 overflow-hidden transition-transform transform hover:scale-105">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <img class="w-14 h-14 rounded-full object-cover mr-4" 
+                                src="images/' . htmlspecialchars($row["profile_image"]) . '.jpg" 
+                                alt="Profile Picture of ' . htmlspecialchars($row["fname"]) . '" />
+                            <div>
+                                <div class="text-lg font-bold text-gray-800">' . htmlspecialchars($row["fname"] . ' ' . $row["lname"]) . '</div>
+                                <div class="text-sm text-gray-500">' . htmlspecialchars($row["specialization"]) . '</div>
+                                <div class="text-sm text-gray-500">' . htmlspecialchars($row["experience"]) . ' years of experience</div>
+                            </div>
+                        </div>
+                        <!-- Skills / Specialization Tags -->
+                        <div class="flex flex-wrap justify-center gap-2 mb-4">
+                            <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Stress</div>
+                            <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Anxiety</div>
+                            <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Depression</div>
+                        </div>
+                        <!-- View Profile Button -->
+                        <div class="flex justify-center mt-4">
+                            <button class="bg-white text-[#1cabe3] border-2 border-[#1cabe3] px-4 py-1 rounded hover:bg-[#1cabe3] hover:text-white transition duration-300 ease-in-out"
+                                onclick="window.location.href=\'MHProfileDetail.php?mhp_id=' . $row["id"] . '\'">
+                                View Profile
+                            </button>
                         </div>
                     </div>
-                    <!-- Skills / Specialization Tags -->
-                    <div class="flex flex-wrap justify-center gap-2 mb-4">
-                        <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Stress</div>
-                        <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Anxiety</div>
-                        <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Depression</div>
-                    </div>
-                    <!-- View Profile Button -->
-                    <div class="flex justify-center mt-4">
-                        <button class="bg-white text-[#1cabe3] border-2 border-[#1cabe3] py-3 px-6 rounded-lg hover:bg-[#1cabe3] hover:text-white transition duration-300 ease-in-out transform hover:scale-105"
-                            onclick="window.location.href=\'MHProfileDetail.php?mhp_id=' . $row["id"] . '\'">
-                            View Profile
-                        </button>
-                    </div>
-                </div>
-            </div>';
+                </div>';
+            }
+            echo '</div>'; // End of grid
+        } else {
+            echo '<div class="text-center text-gray-700 mt-10">
+                    No mental health professionals found.
+                </div>';
         }
-        echo '</div>'; // End of grid
-    } else {
-        echo '<div class="text-center text-gray-700 mt-10">
-                No mental health professionals found.
-              </div>';
-    }
 
-    $conn->close();
-?>
+        $conn->close();
+    ?>
 
     <script>
             // Section switching functionality

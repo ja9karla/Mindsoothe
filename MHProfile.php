@@ -1211,7 +1211,7 @@
           </div>
          
           <?php
-            $sql = "SELECT id, firstName, lastName, specialization, experience FROM MHP WHERE status='approved'";
+            $sql = "SELECT id, fname, lname, specialization, experience FROM MHP WHERE status='approved'";
             $result = $conn->query($sql);
 
             if ($result->num_rows > 0) {
@@ -1219,13 +1219,12 @@
                     echo '
                     <div class="overlap-2">
                         <div class="frame-4">
-                            <img class="subs-free-card" src="image/subs-free-card-4.svg" alt="Card Background" />
                             <div class="frame-5">
                                 <div class="frame-6">
                                     <div class="frame-7">
-                                        <img class="dr-pic" src="images/emily.jpg" alt="Profile Picture" />
+                                        <img class="dr-pic" src="images/DocArceta.jpg" alt="Profile Picture" />
                                         <div class="frame-8">
-                                            <div class="text-wrapper-5">' . htmlspecialchars($row["firstName"] . ' ' . $row["lastName"]) . '</div>
+                                            <div class="text-wrapper-5">' . htmlspecialchars($row["fname"] . ' ' . $row["lname"]) . '</div>
                                             <div class="licensed-mental">' . htmlspecialchars($row["specialization"]) . '</div>
                                             <div class="text-wrapper-6">' . htmlspecialchars($row["experience"]) . ' years of experience</div>
                                         </div>
