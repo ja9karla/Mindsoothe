@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$sql = "SELECT id, firstName, lastName, specialization, experience FROM MHP WHERE status='approved'";
+$sql = "SELECT id, fname, lname, specialization, experience FROM MHP WHERE status='approved'";
 $result = $conn->query($sql);
 
 // Store MHP data in an array
@@ -1632,31 +1632,48 @@ if ($result->num_rows > 0) {
         }
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <body>
     <div class="container">
          <!-- Left Sidebar -->
-         <div id="sidebar" class="sidebar">
-            <div class="logo">
-                <img src="image/Mindsoothe (1).svg" alt="Logo" srcset="">
-            </div>
-            <div class="menu-content">
-                <a href="#" class="menu-item" id="gracefulThreadItem">
-                    <img src="images/gracefulThread.svg" alt="Graceful Thread" class="menu-icon">
-                    <span class="menu-text">Graceful-thread</span> 
-                </a>
-                <a href="#" class="menu-item" id="MentalWellness">
-                    <img src="images/Vector.svg" alt="Mental Wellness Companion" class="menu-icon">
-                    <span class="menu-text">Mental Wellness Companion</span>  
-                </a>
-            </div>
-            <div class="UserAcc">
-                <a href="#" class="user-profile">
-                    <img src="<?php echo htmlspecialchars($profileImage); ?>" alt="Profile Image" class="user-avatar">
-                    <span class="username"><?php echo htmlspecialchars($fullName); ?></span>
-                </a>
-                <a href="logout.php" class="Logout">Logout</a>
+          <div id="sidebar" class="sidebar fixed top-0 left-0 h-screen bg-white shadow-lg z-10">
+        <!-- Logo Section -->
+        <div class="flex items-center p-6 border-b">
+            <div class="w-15 h-10 rounded-full flex items-center justify-center">
+                <a href="#"><img src="images/Mindsoothe(2).svg" alt="Mindsoothe Logo"></a>
             </div>
         </div>
+
+        <!-- Menu Items -->
+        <nav class="mt-6">
+            <a href="#" class="menu-item flex items-center px-6 py-3" data-section="dashboard" id="gracefulThreadItem">
+                <img src="images/gracefulThread.svg" alt="Graceful Thread" class="w-5 h-5">
+                <span class="menu-text ml-3">Graceful Thread</span>
+            </a>
+            <a href="#" class="menu-item active flex items-center px-6 py-3 text-gray-600" data-section="appointments" id="MentalWellness">
+                <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
+                <span class="menu-text ml-3">Mental Wellness Companion</span>
+            </a>
+        </nav>
+
+        <!-- User Profile and Logout Section -->
+        <div class="absolute bottom-0 w-full border-t">
+            <!-- User Profile -->
+            <a href="#" class="menu-item flex items-center px-6 py-4 text-gray-600">
+                <img src="<?php echo htmlspecialchars($profileImage); ?>" alt="Profile Image" class="w-8 h-8 rounded-full">
+                <span class="menu-text ml-3"><?php echo htmlspecialchars($fullName); ?></span>
+            </a>
+
+            <!-- Logout -->
+            <a href="landingpage.html" class="menu-item flex items-center px-6 py-4 text-red-500 hover:text-red-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span class="menu-text ml-3">Logout</span>
+            </a>
+        </div>
+    </div>
     </div>
 
     
@@ -1747,16 +1764,16 @@ if ($result->num_rows > 0) {
                     
                              
 
-    <!-- Time Selection Modal -->
-    <div id="timeModal" class="modal">
-    <div class="modal-content">
-        <span id="closeModal" class="close">&times;</span>
-        <h3>Select Time for Appointment</h3>
-        <div id="timeSlotContainer">
-            <!-- Time slots will be added dynamically -->
-        </div>
-    </div>
-</div>
+                        <!-- Time Selection Modal -->
+                        <div id="timeModal" class="modal">
+                        <div class="modal-content">
+                            <span id="closeModal" class="close">&times;</span>
+                            <h3>Select Time for Appointment</h3>
+                            <div id="timeSlotContainer">
+                                <!-- Time slots will be added dynamically -->
+                            </div>
+                        </div>
+                    </div>
    <script>
               // Tab Switching Logic
               function switchTab(clickedTab, contentId) {

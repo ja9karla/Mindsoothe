@@ -10,7 +10,9 @@
       $specialization = $_POST['specialization'];
       $experience = $_POST['experience'];
       if ($_POST['password'] !== $_POST['confirm_password']) {
-        $message = "Passwords do not match.";
+        echo "<script type='text/javascript'>
+                alert('Passwords do not match.');
+              </script>";
         $upload_ok = false;
     } else {
         // Proceed with password hashing only if passwords match
@@ -26,7 +28,9 @@
       $result = $stmt->get_result();
       
       if ($result->num_rows > 0) {
-          $message = "This email is already registered. Please use a different email.";
+          echo "<script type='text/javascript'>
+                  alert('This email is already registered. Please use a different email.');
+                </script>";
       } else {
           // Handle license uploads
           $upload_dir = "uploads/";
@@ -43,21 +47,27 @@
               $check = getimagesize($file["tmp_name"]);
               if($check === false) {
                   global $message;
-                  $message .= "File is not an image. ";
+                  echo "<script type='text/javascript'>
+                          alert('File is not an image.');
+                        </script>";
                   $upload_ok = false;
               }
               
               // Check file size (limit to 5MB)
               if ($file["size"] > 5000000) {
                   global $message;
-                  $message .= "Sorry, your file is too large. ";
+                  echo "<script type='text/javascript'>
+                          alert('Sorry, your file is too large.');
+                        </script>";
                   $upload_ok = false;
               }
               
               // Allow certain file formats
               if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif" ) {
                   global $message;
-                  $message .= "Sorry, only JPG, JPEG, PNG & GIF files are allowed. ";
+                  echo "<script type='text/javascript'>
+                          alert('Sorry, only JPG, JPEG, PNG & GIF files are allowed.');
+                        </script>";
                   $upload_ok = false;
               }
               
@@ -71,7 +81,9 @@
                       return $target_file;
                   } else {
                       global $message;
-                      $message .= "Sorry, there was an error uploading your file. ";
+                      echo "<script type='text/javascript'>
+                              alert('Sorry, there was an error uploading your file.');
+                           </script>";
                       return false;
                   }
               }
@@ -82,7 +94,9 @@
           if(isset($_FILES["license_front"]) && $_FILES["license_front"]["error"] == 0) {
               $license_front = handleUpload($_FILES["license_front"], "front");
           } else {
-              $message .= "Front license file is required. ";
+              echo "<script type='text/javascript'>
+                      alert('Front license file is required.');
+                    </script>";
               $upload_ok = false;
           }
           
@@ -90,7 +104,9 @@
           if(isset($_FILES["license_back"]) && $_FILES["license_back"]["error"] == 0) {
               $license_back = handleUpload($_FILES["license_back"], "back");
           } else {
-              $message .= "Back license file is required. ";
+              echo "<script type='text/javascript'>
+                      alert('Back license file is required.');
+                    </script>";
               $upload_ok = false;
           }
           
@@ -101,7 +117,9 @@
               $stmt->bind_param("ssssssss", $fname, $lname, $email, $specialization, $experience, $license_front, $license_back, $password);
               
               if ($stmt->execute()) {
-                  $message = "Registration successful. Please wait for admin approval.";
+                  echo "<script type='text/javascript'>
+                          alert('Registration successful. Please wait for admin approval.');
+                        </script>";
               } else {
                   $message = "Error: " . $stmt->error;
               }
@@ -132,15 +150,23 @@
               header("Location: mhpdashboard.html");
               exit();
           } elseif ($doctor['status'] === 'declined') {
-              $message = "Your account has been declined. Please contact admin.";
+              echo "<script type='text/javascript'>
+                      alert('Your account has been declined. Please contact admin.');
+                    </script>";
           } else {
-              $message = "Your account is pending approval. Please wait for admin confirmation.";
+              echo "<script type='text/javascript'>
+                      alert('Your account is pending approval. Please wait for admin confirmation.');
+                    </script>";
           }
       } else {
-          $message = "Invalid email or password.";
+          echo "<script type='text/javascript'>
+                  alert('Invalid email or password.');
+                </script>";
       }
   } else {
-      $message = "Invalid email or password.";
+      echo "<script type='text/javascript'>
+              alert('Invalid email or password.');
+            </script>";
   }
 }
   // Logout process
@@ -470,23 +496,23 @@
           line-height: 1.5;
       }
       .modal-actions {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
+          display: flex;
+          justify-content: center;
+          margin-top: 20px;
+      }
 
-.modal-actions button {
-    padding: 10px 20px;
-    background-color: #1cabe3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
+      .modal-actions button {
+          padding: 10px 20px;
+          background-color: #1cabe3;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+      }
 
-.modal-actions button:hover {
-    background-color: #1597c9;
-}
+      .modal-actions button:hover {
+          background-color: #1597c9;
+      }
     </style>
   </head>
   <body>

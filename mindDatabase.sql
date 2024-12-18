@@ -48,8 +48,8 @@ CREATE TABLE phq9_responses (
 
 create table MHP (
 	id INT AUTO_INCREMENT PRIMARY KEY,
-	firstName VARCHAR(50) NOT NULL,
-	lastName VARCHAR(50) NOT NULL,
+	fname VARCHAR(50) NOT NULL,
+	lname VARCHAR(50) NOT NULL,
 	email VARCHAR(50) NOT NULL,
 	specialization VARCHAR(255) NOT NULL,
 	experience INT NOT NULL,
@@ -61,6 +61,12 @@ create table MHP (
 	status ENUM('pending', 'approved', 'declined') DEFAULT 'pending',
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );	
+ALTER TABLE MHP
+ADD COLUMN profile_image VARCHAR(255) DEFAULT 'images/blueuser.svg' AFTER status;
+DESCRIBE MHP;
+drop table MHP;
+
+--walang pang appointment wait lang
 
 CREATE TABLE appointments (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -74,12 +80,24 @@ CREATE TABLE appointments (
     FOREIGN KEY (doctor_id) REFERENCES MHP(id) ON DELETE CASCADE,
     FOREIGN KEY (patient_id) REFERENCES Users(id) ON DELETE CASCADE
 );
-
-CREATE TABLE Patients (
+drop table appointments;
+CREATE TABLE patients (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,  -- Links to Users table
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20),
     date_of_birth DATE,
     gender ENUM('Male', 'Female', 'Other'),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+drop table patients;
+CREATE TABLE MHP_sched (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_id INT NOT NULL,
+    date DATE NOT NULL,
+    time_slot VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES MHP(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_schedule (doctor_id, date, time_slot)
+);
+drop table MHP_sched;
