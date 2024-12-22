@@ -63,10 +63,7 @@ create table MHP (
 );	
 ALTER TABLE MHP
 ADD COLUMN profile_image VARCHAR(255) DEFAULT 'images/blueuser.svg' AFTER status;
-DESCRIBE MHP;
-drop table MHP;
 
---walang pang appointment wait lang
 
 CREATE TABLE appointments (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,7 +77,7 @@ CREATE TABLE appointments (
     FOREIGN KEY (doctor_id) REFERENCES MHP(id) ON DELETE CASCADE,
     FOREIGN KEY (patient_id) REFERENCES Users(id) ON DELETE CASCADE
 );
-drop table appointments;
+
 CREATE TABLE patients (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -90,7 +87,7 @@ CREATE TABLE patients (
     gender ENUM('Male', 'Female', 'Other'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-drop table patients;
+
 CREATE TABLE MHP_sched (
     id INT AUTO_INCREMENT PRIMARY KEY,
     doctor_id INT NOT NULL,
@@ -100,4 +97,9 @@ CREATE TABLE MHP_sched (
     FOREIGN KEY (doctor_id) REFERENCES MHP(id) ON DELETE CASCADE,
     UNIQUE KEY unique_schedule (doctor_id, date, time_slot)
 );
-drop table MHP_sched;
+
+CREATE TABLE admin (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
