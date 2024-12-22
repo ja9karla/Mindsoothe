@@ -1,5 +1,7 @@
 <?php
-  include("C:/xampp/htdocs/testers/connect.php");
+  session_start();
+  // Database connection
+  include("../connect.php");
   $message = '';
 
   // Registration process

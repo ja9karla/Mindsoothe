@@ -2,17 +2,7 @@
 session_start();
 
 // Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "_Mindsoothe";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
-    exit();
-}
+include("../connect.php");
 
 // Check if doctor is logged in
 if (!isset($_SESSION['doctor_id'])) {
@@ -26,7 +16,7 @@ $doctor_id = $_SESSION['doctor_id'];
 
 // Get doctor details
 function getDoctorDetails($doctor_id, $conn) {
-    $sql = "SELECT *, DATE_FORMAT(created_at, '%M %Y') as created_at FROM doctors WHERE id = ?";
+    $sql = "SELECT *, DATE_FORMAT(created_at, '%M %Y') as created_at FROM MHP WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $doctor_id);
     $stmt->execute();
