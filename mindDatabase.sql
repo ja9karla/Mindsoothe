@@ -12,7 +12,16 @@ status TINYINT(1) NOT NULL DEFAULT 0,
 otp VARCHAR(6) DEFAULT NULL,
 is_patient BOOLEAN DEFAULT FALSE
 );
- 
+ -- default users pw is 123
+INSERT INTO Users (firstName, lastName, email, password) 
+VALUES ('Sheena', 'Catacutan', 'sheena@usl.edu.ph', '202cb962ac59075b964b07152d234b70');
+INSERT INTO Users (firstName, lastName, email, password) 
+VALUES ('Mikha', 'Lim', 'mikha@usl.edu.ph', '202cb962ac59075b964b07152d234b70');
+INSERT INTO Users (firstName, lastName, email, password) 
+VALUES ('Stacey', 'Sevilleja', 'stacey@usl.edu.ph', '202cb962ac59075b964b07152d234b70');
+INSERT INTO Users (firstName, lastName, email, password) 
+VALUES ('Jhoanna', 'Robles', 'jhoanna@usl.edu.ph', '202cb962ac59075b964b07152d234b70');
+
 CREATE TABLE GracefulThread (
 id INT (10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 user_id INT(10) NOT NULL,
@@ -52,18 +61,17 @@ create table MHP (
 	lname VARCHAR(50) NOT NULL,
 	email VARCHAR(50) NOT NULL,
 	specialization VARCHAR(255) NOT NULL,
-	experience INT NOT NULL,
-	license_front VARCHAR(255) NOT NULL,
-	license_back VARCHAR(255) NOT NULL,
 	qualifications text(500) not null,
 	education text(500) not null,
 	password VARCHAR(255),  -- To store the hashed password
-	status ENUM('pending', 'approved', 'declined') DEFAULT 'pending',
+    profile_image VARCHAR(255) DEFAULT 'images/blueuser.svg',
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );	
-ALTER TABLE MHP
-ADD COLUMN profile_image VARCHAR(255) DEFAULT 'images/blueuser.svg' AFTER status;
-
+-- Not working manual input pw 123 for now
+INSERT INTO MHP (fname, lname, email, specialization, password, profile_image, created_at)
+VALUES
+    ('Maloi', 'Ricalde', 'maloi.ricalde@usl.edu.ph', 'Child Psychology', '$2y$10$k9J2gq0L4/pF43yNkxIoD.v38NjSP3dBJ7oa5WzC5byCBN3d9UT3a', 'images/blueuser.svg', CURRENT_TIMESTAMP),
+    ('Gwen', 'Apuli', 'gwen.apuli@usl.edu.ph', 'Addiction Counseling', '$2y$10$k9J2gq0L4/pF43yNkxIoD.v38NjSP3dBJ7oa5WzC5byCBN3d9UT3a', 'images/blueuser.svg', CURRENT_TIMESTAMP);
 
 CREATE TABLE appointments (
     id INT AUTO_INCREMENT PRIMARY KEY,

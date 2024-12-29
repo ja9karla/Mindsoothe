@@ -4,162 +4,76 @@
   include("../connect.php");
   $message = '';
 
-  // Registration process
-  if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signUp'])) {
-      $fname = $_POST['fname'];
-      $lname = $_POST['lname'];
-      $email = $_POST['email'];
-      $specialization = $_POST['specialization'];
-      $experience = $_POST['experience'];
-      if ($_POST['password'] !== $_POST['confirm_password']) {
+
+// Registration process
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signUp'])) {
+    $fname = $_POST['fname'];
+    $lname = $_POST['lname'];
+    $email = $_POST['email'];
+    $specialization = $_POST['specialization'];
+    if ($_POST['password'] !== $_POST['confirm_password']) {
         echo "<script type='text/javascript'>
                 alert('Passwords do not match.');
               </script>";
-        $upload_ok = false;
     } else {
         // Proceed with password hashing only if passwords match
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     }
-  
-      
-      // Check if email already exists
-      $check_email = "SELECT * FROM MHP WHERE email = ?";
-      $stmt = $conn->prepare($check_email);
-      $stmt->bind_param("s", $email);
-      $stmt->execute();
-      $result = $stmt->get_result();
-      
-      if ($result->num_rows > 0) {
-          echo "<script type='text/javascript'>
-                  alert('This email is already registered. Please use a different email.');
-                </script>";
-      } else {
-          // Handle license uploads
-          $upload_dir = "uploads/";
-          $license_front = $license_back = "";
-          $upload_ok = true;
-          
-          // Function to handle file upload
-          function handleUpload($file, $side) {
-              global $upload_dir, $upload_ok;
-              $target_file = $upload_dir . basename($file["name"]);
-              $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-              
-              // Check if image file is an actual image
-              $check = getimagesize($file["tmp_name"]);
-              if($check === false) {
-                  global $message;
+
+    // Check if email ends with "@usl.edu.ph"
+    if (substr($email, -11) !== "@usl.edu.ph") {
+        echo "<script type='text/javascript'>
+                alert('Email must end with @usl.edu.ph.');
+              </script>";
+    } else {
+        // Check if email already exists
+        $check_email = "SELECT * FROM MHP WHERE email = ?";
+        $stmt = $conn->prepare($check_email);
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            echo "<script type='text/javascript'>
+                    alert('This email is already registered. Please use a different email.');
+                  </script>";
+        } else {
+            // If everything is ok, insert into database
+            $sql = "INSERT INTO MHP (fname, lname, email, specialization, password) VALUES (?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssss", $fname, $lname, $email, $specialization, $password);
+
+            if ($stmt->execute()) {
                   echo "<script type='text/javascript'>
-                          alert('File is not an image.');
-                        </script>";
-                  $upload_ok = false;
-              }
-              
-              // Check file size (limit to 5MB)
-              if ($file["size"] > 5000000) {
-                  global $message;
-                  echo "<script type='text/javascript'>
-                          alert('Sorry, your file is too large.');
-                        </script>";
-                  $upload_ok = false;
-              }
-              
-              // Allow certain file formats
-              if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif" ) {
-                  global $message;
-                  echo "<script type='text/javascript'>
-                          alert('Sorry, only JPG, JPEG, PNG & GIF files are allowed.');
-                        </script>";
-                  $upload_ok = false;
-              }
-              
-              // Generate a unique filename
-              $new_filename = uniqid() . '_' . $side . '.' . $imageFileType;
-              $target_file = $upload_dir . $new_filename;
-              
-              // Upload file
-              if ($upload_ok) {
-                  if (move_uploaded_file($file["tmp_name"], $target_file)) {
-                      return $target_file;
-                  } else {
-                      global $message;
-                      echo "<script type='text/javascript'>
-                              alert('Sorry, there was an error uploading your file.');
-                           </script>";
-                      return false;
-                  }
-              }
-              return false;
-          }
-          
-          // Handle front license upload
-          if(isset($_FILES["license_front"]) && $_FILES["license_front"]["error"] == 0) {
-              $license_front = handleUpload($_FILES["license_front"], "front");
-          } else {
-              echo "<script type='text/javascript'>
-                      alert('Front license file is required.');
-                    </script>";
-              $upload_ok = false;
-          }
-          
-          // Handle back license upload
-          if(isset($_FILES["license_back"]) && $_FILES["license_back"]["error"] == 0) {
-              $license_back = handleUpload($_FILES["license_back"], "back");
-          } else {
-              echo "<script type='text/javascript'>
-                      alert('Back license file is required.');
-                    </script>";
-              $upload_ok = false;
-          }
-          
-          // If everything is ok, insert into database
-          if ($upload_ok) {
-              $sql = "INSERT INTO MHP (fname, lname, email, specialization, experience, license_front, license_back, password, status) VALUES (?, ?, ?, ?, ?, ?, ?,?, 'pending')";
-              $stmt = $conn->prepare($sql);
-              $stmt->bind_param("ssssssss", $fname, $lname, $email, $specialization, $experience, $license_front, $license_back, $password);
-              
-              if ($stmt->execute()) {
-                  echo "<script type='text/javascript'>
-                          alert('Registration successful. Please wait for admin approval.');
-                        </script>";
-              } else {
-                  $message = "Error: " . $stmt->error;
-              }
-          }
-      }
-  }
+                      alert('Registration successful.');
+                      window.location.href = './/doc_registration.php';
+                      </script>";
+            } else {
+                $message = "Error: " . $stmt->error;
+            }
+        }
+    }
+}
 
+// Login process
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
+  $email = $_POST['email'];
+  $password = $_POST['password'];
 
+  $sql = "SELECT * FROM MHP WHERE email = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-  // Login process
-  if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    $sql = "SELECT * FROM MHP WHERE email = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows === 1) {
+  if ($result->num_rows === 1) {
       $doctor = $result->fetch_assoc();
       if (password_verify($password, $doctor['password'])) {
-          if ($doctor['status'] === 'approved') {
-              $_SESSION['doctor_id'] = $doctor['id'];
-              $_SESSION['doctor_first_name'] = $doctor['fname'];
-              $_SESSION['doctor_last_name'] = $doctor['lname'];
-              header("Location: mhpdashboard.html");
-              exit();
-          } elseif ($doctor['status'] === 'declined') {
-              echo "<script type='text/javascript'>
-                      alert('Your account has been declined. Please contact admin.');
-                    </script>";
-          } else {
-              echo "<script type='text/javascript'>
-                      alert('Your account is pending approval. Please wait for admin confirmation.');
-                    </script>";
-          }
+          $_SESSION['doctor_id'] = $doctor['id'];
+          $_SESSION['doctor_first_name'] = $doctor['fname'];
+          $_SESSION['doctor_last_name'] = $doctor['lname'];
+          header("Location: mhpdashboard.html");
+          exit();
       } else {
           echo "<script type='text/javascript'>
                   alert('Invalid email or password.');
@@ -171,6 +85,7 @@
             </script>";
   }
 }
+
   // Logout process
   if (isset($_GET['logout'])) {
       session_destroy();
@@ -233,7 +148,7 @@
       }
 
       button {
-        border-radius: 20px;
+        border-radius: 10px;
         border: 1px solid #1cabe3;
         background-color: #1cabe3;
         color: #FFFFFF;
@@ -534,29 +449,7 @@
           <option value="Counseling Psychologist">Counselor</option>
           <option value="Neuropsychologist">psychotherapy</option>
           </select>
-          <input type="number" name="experience" placeholder="Years of Experience"  min="0" required/>
-          <div class="license-upload-container">
-           <input type="text" 
-           id="license_upload_trigger" 
-           class="license-upload-input" 
-           readonly 
-           value="Upload License" 
-           onclick="openLicenseModal()" />
-    
-          <!-- Hidden file inputs -->
-          <input type="file" 
-           name="license_front" 
-           id="license_front" 
-           style="display: none;" 
-           accept=".jpg,.jpeg,.png,.gif" 
-           required/>
-          <input type="file" 
-           name="license_back" 
-           id="license_back" 
-           style="display: none;" 
-           accept=".jpg,.jpeg,.png,.gif" 
-           required/>
-          </div>
+          
           <input type="password" name="password" placeholder="Password" required />
           <input type="password" name="confirm_password" placeholder="Confirm Password" required />
           <button type="submit" name="signUp">Sign Up</button>
@@ -592,42 +485,7 @@
         </div>
       </div>
     </div>
-    <div id="licenseModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeLicenseModal()">&times;</span>
-        <h2 class="modal-title">Medical License Upload</h2>
-        <p class="modal-description">
-            To ensure the highest quality of care and maintain trust in our platform, 
-            we require all professionals to verify their credentials. Please 
-            provide clear, readable images of both the front and back of your current 
-            license. This information will be securely stored and reviewed by 
-            our verification team.
-        </p>
-        <div class="license-upload-container">
-            <label class="license-upload-btn" for="modal_license_front">
-                Upload Front of License
-                <div id="front_file_name">No file chosen</div>
-            </label>
-            <input type="file" 
-                   id="modal_license_front" 
-                   accept=".jpg,.jpeg,.png,.gif" 
-                   style="display: none;" 
-                   onchange="handleLicenseUpload(this, 'front')"/>
-        </div>
-        <div class="license-upload-container">
-            <label class="license-upload-btn" for="modal_license_back">
-                Upload Back of License
-                <div id="back_file_name">No file chosen</div>
-            </label>
-            <input type="file" 
-                   id="modal_license_back" 
-                   accept=".jpg,.jpeg,.png,.gif" 
-                   style="display: none;" 
-                   onchange="handleLicenseUpload(this, 'back')"/>
-        </div>
-        <div class="modal-actions">
-            <button onclick="saveLicenseUpload()">Save</button>
-        </div>
+    
     </div>
 </div>
     
@@ -692,27 +550,9 @@ function handleLicenseUpload(input, side) {
     }
 }
 
-function updateTriggerText() {
-    const frontFile = document.getElementById('license_front').files;
-    const backFile = document.getElementById('license_back').files;
-    const triggerInput = document.getElementById('license_upload_trigger');
-    
-    if (frontFile.length && backFile.length) {
-        triggerInput.value = 'Both sides of license uploaded';
-    } else if (frontFile.length || backFile.length) {
-        triggerInput.value = 'One side of license uploaded';
-    } else {
-        triggerInput.value = 'Upload License';
-    }
-}
 
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('licenseModal');
-    if (event.target == modal) {
-        closeLicenseModal();
-    }
-}
+
+
     </script>
   </body>
   </html>

@@ -11,16 +11,25 @@
         $email = $_POST['email'];
         $password = $_POST['password'];
         $password = md5($password);
-
+    
         // Validate email syntax
         if (!isValidEmail($email)) {
             echo "Invalid email format!";
             exit();
         }
-
+    
+        // Check if email ends with "@usl.edu.ph"
+        if (!preg_match("/@usl\.edu\.ph$/", $email)) {
+            echo "<script type='text/javascript'>
+            alert('Invalid email domain. Please use @usl.edu.ph');
+            window.location.href = 'Login.html';
+            </script>";
+            exit();
+        }
+    
         $checkEmail = "SELECT * FROM Users WHERE email='$email'";
         $result = $conn->query($checkEmail);
-
+    
         if($result->num_rows > 0){
             echo "<script type='text/javascript'>
                 alert('Email Address Already Exists!');

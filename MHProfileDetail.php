@@ -1711,28 +1711,10 @@ if ($result->num_rows > 0) {
                             <div class="booked-indicator"></div>
                         </div>
                         <div class="calendar-container">
-                            <!-- Calendar Header with Navigation -->
-                            <div class="calendar-header">
-                                <button class="prev-month">&lt;</button>
-                                <div class="month-year" id="monthYear">February 2024</div>
-                                <button class="next-month">&gt;</button>
-                            </div>
-
-                            <!-- Calendar Body -->
-                            <div class="calendar-body">
-                                <div class="calendar-weekdays">
-                                    <div>Sun</div>
-                                    <div>Mon</div>
-                                    <div>Tue</div>
-                                    <div>Wed</div>
-                                    <div>Thu</div>
-                                    <div>Fri</div>
-                                    <div>Sat</div>
-                                </div>
-                                <div class="calendar-dates" id="calendarDates">
-                                    <!-- Calendar dates will be dynamically generated -->
-                                </div>
-                            </div>
+<!-- Calendly inline widget begin -->
+<div class="calendly-inline-widget" data-url="https://calendly.com/pablojaninekarla/30min?hide_gdpr_banner=1" style="min-width:320px;height:700px;"></div>
+<script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+<!-- Calendly inline widget end -->
                         </div>
                     </div>
 

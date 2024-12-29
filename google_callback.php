@@ -42,7 +42,15 @@ if (isset($_GET['code'])) {
         echo "First Name: " . $firstName . "<br>";
         echo "Last Name: " . $lastName . "<br>";
         echo "Profile Picture URL: " . $picture . "<br>";
-        echo "Locale: " . $locale . "<br>";
+
+        // Check if email ends with "@usl.edu.ph"
+        if (substr($email, -11) !== "@usl.edu.ph") {
+            echo "<script type='text/javascript'>
+                    alert('This website is only available to USL affiliates. Please use your corporate email to sign in.');
+                    window.location.href = 'Login.html'; // Redirect to login page
+                </script>";
+            exit();
+        }
 
         // Check if user exists in the database
         $checkUser = "SELECT * FROM Users WHERE email='$email'";
