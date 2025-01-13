@@ -10,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signUp'])) {
     $fname = $_POST['fname'];
     $lname = $_POST['lname'];
     $email = $_POST['email'];
-    $specialization = $_POST['specialization'];
     if ($_POST['password'] !== $_POST['confirm_password']) {
         echo "<script type='text/javascript'>
                 alert('Passwords do not match.');
@@ -39,14 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signUp'])) {
                   </script>";
         } else {
             // If everything is ok, insert into database
-            $sql = "INSERT INTO MHP (fname, lname, email, specialization, password) VALUES (?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO MHP (fname, lname, email, password) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssss", $fname, $lname, $email, $specialization, $password);
+            $stmt->bind_param("sssss", $fname, $lname, $email,  $password);
 
             if ($stmt->execute()) {
                   echo "<script type='text/javascript'>
                       alert('Registration successful.');
-                      window.location.href = './/doc_registration.php';
+                      window.location.href = '../doc_registration.php';
                       </script>";
             } else {
                 $message = "Error: " . $stmt->error;
@@ -58,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signUp'])) {
 // Login process
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
   $email = $_POST['email'];
-  $password = $_POST['password'];
+  $password = $_POST['password']; // Plain text password entered by the user
+  $hashedPassword = md5($password); // Hash the password using md5()
 
   $sql = "SELECT * FROM MHP WHERE email = ?";
   $stmt = $conn->prepare($sql);
@@ -68,23 +68,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
 
   if ($result->num_rows === 1) {
       $doctor = $result->fetch_assoc();
-      if (password_verify($password, $doctor['password'])) {
+      // Compare the md5 hashed password
+      if ($hashedPassword === $doctor['password']) {
+          // Start a session and store user information
+          session_start();
           $_SESSION['doctor_id'] = $doctor['id'];
-          $_SESSION['doctor_first_name'] = $doctor['fname'];
-          $_SESSION['doctor_last_name'] = $doctor['lname'];
+          $_SESSION['doctor_first_name'] = $doctor['firstName'];
+          $_SESSION['doctor_last_name'] = $doctor['lastName'];
           header("Location: mhpdashboard.html");
           exit();
       } else {
+          // Invalid password
           echo "<script type='text/javascript'>
                   alert('Invalid email or password.');
                 </script>";
       }
   } else {
+      // No user found with the provided email
       echo "<script type='text/javascript'>
-              alert('Invalid email or password.');
+              alert('Invalid or password.');
             </script>";
   }
 }
+
+
 
   // Logout process
   if (isset($_GET['logout'])) {
@@ -430,6 +437,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
       .modal-actions button:hover {
           background-color: #1597c9;
       }
+      .decor {
+        margin-bottom: 50px;
+      }
     </style>
   </head>
   <body>
@@ -457,13 +467,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
       </div>
       <div class="form-container sign-in-container">
         <form method="post">
-          <h1>Sign in</h1>
-          <div class="social-container">
-            <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
-            <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
-          </div>
-          <span>or use your account</span>
+          <h1 class="decor">Sign in</h1>
+          
           <input type="email" name="email" placeholder="Email" required/>
           <input type="password" name="password" placeholder="Password" required/>
           <a href="#">Forgot your password?</a>
@@ -478,9 +483,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
             <button class="ghost" id="signIn">Sign In</button>
           </div>
           <div class="overlay-panel overlay-right">
-            <h1>Hello, Doctor!</h1>
-            <p>Enter your personal details and start your journey with us</p>
-            <button class="ghost" id="signUp">Sign Up</button>
+            <h1>Welcome to Mindsoothe!</h1>
+            <p>Guiding lives, inspiring change—empower others to thrive and make a lasting impact.</p>
+            <!-- <button class="ghost" id="signUp">Sign Up</button> -->
           </div>
         </div>
       </div>
@@ -549,9 +554,6 @@ function handleLicenseUpload(input, side) {
         updateTriggerText();
     }
 }
-
-
-
 
     </script>
   </body>

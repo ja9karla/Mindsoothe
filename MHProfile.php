@@ -112,20 +112,18 @@
         </div>
     </div>
 
-    <!-- Main Content -->
     <?php
-        $sql = "SELECT id, fname, lname, specialization, experience, profile_image 
-                FROM MHP 
-                WHERE status = 'approved'";
+        $sql = "SELECT id, fname, lname, department, profile_image FROM MHP";
         $result = $conn->query($sql);
-
+        
         if ($result->num_rows > 0) {
+            echo '<div id="listingView">';  // Wrapper for the listing view
             echo '<h1 class="text-2xl font-bold text-center text-gray-800 mt-6 mb-8">
-                    <span class="text-[#1cabe3]">PHQ-9</span> Mental <span class="text-[#1cabe3]">Wellness</span> Companion
-                </h1>';
-
+                    <span class="text-[#1cabe3]">Mental</span> <span class="text-[#000000]">Wellness</span> Companion
+                  </h1>';
+        
             echo '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-20 justify-items-center ml-60">';
-
+        
             while ($row = $result->fetch_assoc()) {
                 echo '
                 <div class="bg-white rounded-lg shadow-lg w-80 overflow-hidden transition-transform transform hover:scale-105">
@@ -136,33 +134,53 @@
                                 alt="Profile Picture of ' . htmlspecialchars($row["fname"]) . '" />
                             <div>
                                 <div class="text-lg font-bold text-gray-800">' . htmlspecialchars($row["fname"] . ' ' . $row["lname"]) . '</div>
-                                <div class="text-sm text-gray-500">' . htmlspecialchars($row["specialization"]) . '</div>
-                                <div class="text-sm text-gray-500">' . htmlspecialchars($row["experience"]) . ' years of experience</div>
+                                <div class="text-sm text-gray-500">' . htmlspecialchars($row["department"]) . '</div>
                             </div>
                         </div>
-                        <!-- Skills / Specialization Tags -->
                         <div class="flex flex-wrap justify-center gap-2 mb-4">
                             <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Stress</div>
                             <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Anxiety</div>
                             <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Depression</div>
                         </div>
-                        <!-- View Profile Button -->
                         <div class="flex justify-center mt-4">
                             <button class="bg-white text-[#1cabe3] border-2 border-[#1cabe3] px-4 py-1 rounded hover:bg-[#1cabe3] hover:text-white transition duration-300 ease-in-out"
-                                onclick="window.location.href=\'MHProfileDetail.php?mhp_id=' . $row["id"] . '\'">
-                                View Profile
+                                onclick="openChat(\'' . htmlspecialchars($row["id"]) . '\', \'' . htmlspecialchars($row["fname"] . ' ' . $row["lname"]) . '\')">
+                                Start Chat
                             </button>
                         </div>
                     </div>
                 </div>';
             }
             echo '</div>'; // End of grid
+            echo '</div>'; // End of listingView
+        
+            // Chat Window - Adjusted to respect sidebar
+            echo '
+            <div id="chatWindow" class="hidden fixed right-0 top-0 bottom-0 left-60 bg-gray-100 z-50">
+                <div class="max-w-3xl mx-auto h-full flex flex-col p-4">
+                    <div class="flex items-center mb-4">
+                        <button onclick="closeChat()" class="text-[#1cabe3] font-semibold mr-4">&larr; Back</button>
+                        <h2 id="chatHeader" class="text-xl font-bold text-[#1cabe3]"></h2>
+                    </div>
+                    <div class="bg-white p-4 shadow-md rounded-lg flex flex-col flex-grow">
+                        <div id="chatMessages" class="flex-grow overflow-y-auto mb-4 p-4">
+                            <!-- Messages will be dynamically added here -->
+                        </div>
+                        <div class="flex items-center">
+                            <input type="text" id="messageInput" placeholder="Type a message..." 
+                                class="flex-grow border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#1cabe3]">
+                            <button onclick="sendMessage()" 
+                                class="bg-[#1cabe3] text-white px-4 py-2 rounded-r-lg hover:bg-[#158bb8] transition duration-300">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>';
         } else {
-            echo '<div class="text-center text-gray-700 mt-10">
-                    No mental health professionals found.
-                </div>';
+            echo '<div class="text-center text-gray-700 mt-10">No mental health professionals found.</div>';
         }
-
+        
         $conn->close();
     ?>
 
@@ -185,6 +203,72 @@
                   document.getElementById(`${sectionId}-section`).classList.add('active');
                 }
               });
+            });
+
+            let currentMhpId = null;
+
+            function openChat(mhpId, mhpName) {
+                currentMhpId = mhpId;
+                document.getElementById('listingView').classList.add('opacity-0');
+                document.getElementById('chatWindow').classList.remove('hidden');
+                document.getElementById('chatHeader').textContent = `Chat with ${mhpName}`;
+                loadChatHistory(mhpId);
+            }
+
+            function closeChat() {
+                document.getElementById('listingView').classList.remove('opacity-0');
+                document.getElementById('chatWindow').classList.add('hidden');
+                document.getElementById('chatMessages').innerHTML = '';
+                currentMhpId = null;
+            }
+
+            function loadChatHistory(mhpId) {
+                // Add initial welcome message
+                const welcomeMessage = createMessageElement(
+                    'Hello, how can I help you today?',
+                    'received'
+                );
+                document.getElementById('chatMessages').appendChild(welcomeMessage);
+            }
+
+            function sendMessage() {
+                const input = document.getElementById('messageInput');
+                const message = input.value.trim();
+                
+                if (message && currentMhpId) {
+                    // Add message to chat
+                    const messageElement = createMessageElement(message, 'sent');
+                    document.getElementById('chatMessages').appendChild(messageElement);
+                    
+                    // Clear input
+                    input.value = '';
+                    
+                    // Scroll to bottom
+                    const chatMessages = document.getElementById('chatMessages');
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    // Here you would typically send the message to your backend
+                    // sendMessageToServer(currentMhpId, message);
+                }
+            }
+
+            function createMessageElement(message, type) {
+                const div = document.createElement('div');
+                div.className = `mb-2 ${type === 'sent' ? 'text-right' : ''}`;
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `${type === 'sent' ? 'bg-gray-200 text-gray-800' : 'bg-[#1cabe3] text-white'} p-2 rounded-lg inline-block text-sm max-w-[70%]`;
+                messageDiv.textContent = message;
+                
+                div.appendChild(messageDiv);
+                return div;
+            }
+
+            // Add event listener for Enter key in message input
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
             });
     </script>
     <script src="sidebarnav.js"></script>
