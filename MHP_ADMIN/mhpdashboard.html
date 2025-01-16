@@ -331,19 +331,18 @@
                         <button id="saveSchedule" class="bg-green-500 text-white px-4 py-2 rounded">Save Schedule</button>
                     </div>
                 </div>
-                
-
+        
             <div class="content-section p-6" id="reviews-content">
                 <div id="reviews" class="text-gray-600 bg-gray-50 p-4 rounded-lg">
                     <!-- Reviews Section -->
-            <div class="bg-white shadow-lg rounded-lg p-6">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Patient Reviews</h2>
-                
-                <!-- Reviews Container -->
-                <div id="reviewsContainer" class="space-y-4">
-                    <!-- Reviews will be dynamically loaded here -->
+                <div class="bg-white shadow-lg rounded-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Patient Reviews</h2>
+                    
+                    <!-- Reviews Container -->
+                    <div id="reviewsContainer" class="space-y-4">
+                        <!-- Reviews will be dynamically loaded here -->
+                    </div>
                 </div>
-            </div>
                 </div>
             </div>
         </div> 
@@ -351,451 +350,451 @@
 </div>
 
     <script>
-              // Section switching functionality
-            const menuItems = document.querySelectorAll('.menu-item');
-            const sections = document.querySelectorAll('.section');
+                    // Section switching functionality
+                    const menuItems = document.querySelectorAll('.menu-item');
+                    const sections = document.querySelectorAll('.section');
 
-            menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    menuItems.forEach(mi => mi.classList.remove('active'));
-                    sections.forEach(section => section.classList.remove('active'));
-                    
-                    this.classList.add('active');
-                    
-                    const sectionId = this.getAttribute('data-section');
-                    document.getElementById(`${sectionId}-section`).classList.add('active');
-                });
-            });
-        // Function to fetch doctor and appointments data
-        async function fetchDoctorData() {
-            try {
-                const response = await fetch('connection.php');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch doctor data');
+                    menuItems.forEach(item => {
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            menuItems.forEach(mi => mi.classList.remove('active'));
+                            sections.forEach(section => section.classList.remove('active'));
+                            
+                            this.classList.add('active');
+                            
+                            const sectionId = this.getAttribute('data-section');
+                            document.getElementById(`${sectionId}-section`).classList.add('active');
+                        });
+                    });
+                // Function to fetch doctor and appointments data
+                async function fetchDoctorData() {
+                    try {
+                        const response = await fetch('connection.php');
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch doctor data');
+                        }
+                        const data = await response.json();
+                        
+                        // Update dashboard doctor profile
+                        document.getElementById('dashboardDoctorFirstName').textContent = data.doctor.fname;
+                        document.getElementById('dashboardDoctorLastName').textContent = data.doctor.lname;
+                        document.getElementById('dashboardDoctorSpecialization').textContent = data.doctor.specialization;
+                        document.getElementById('dashboardMemberSince').textContent = `Member Since: ${data.doctor.created_at}`;
+                        document.getElementById('dashboardDoctorExperience').textContent = `Experience: ${data.doctor.experience} Years`;
+
+                        // Update schedule doctor profile
+                        document.getElementById('scheduleDoctorFirstName').textContent = data.doctor.fname;
+                        document.getElementById('scheduleDoctorLastName').textContent = data.doctor.lname;
+                        document.getElementById('scheduleDoctorSpecialization').textContent = data.doctor.specialization;
+                        document.getElementById('scheduleMemberSince').textContent = `Member Since: ${data.doctor.created_at}`;
+                        document.getElementById('scheduleDoctorExperience').textContent = `Experience: ${data.doctor.experience} Years`;
+
+                        // Update dashboard statistics
+                        document.getElementById('todayAppointments').textContent = data.today_appointments;
+                        document.getElementById('totalPatients').textContent = data.total_patients;
+                        document.getElementById('consultationHours').textContent = Math.round(data.today_appointments * 0.5);
+
+                        // Update upcoming appointments
+                        const appointmentsList = document.getElementById('upcomingAppointmentsList');
+                        appointmentsList.innerHTML = ''; // Clear loading message
+
+                        if (data.upcoming_appointments.length === 0) {
+                            const noAppointmentsLi = document.createElement('li');
+                            noAppointmentsLi.className = 'py-4 text-center text-gray-500';
+                            noAppointmentsLi.textContent = 'No upcoming appointments';
+                            appointmentsList.appendChild(noAppointmentsLi);
+                        } else {
+                            data.upcoming_appointments.forEach(appointment => {
+                                const li = document.createElement('li');
+                                li.className = 'py-4 flex justify-between items-center';
+                                li.innerHTML = `
+                                    <div>
+                                        <p class="text-gray-800 font-medium">${appointment.patient_name}</p>
+                                        <p class="text-gray-500 text-sm">${appointment.appointment_date} at ${appointment.appointment_time}</p>
+                                    </div>
+                                    <span class="text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Scheduled</span>
+                                `;
+                                appointmentsList.appendChild(li);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Failed to load doctor data. Please try again later.');
+                    }
+        }
+
+        // Appointments Data Management
+        class AppointmentManager {
+                constructor() {
+                    this.appointments = [
+                        // Sample initial appointments
+                        {
+                            id: 1,
+                            patient: 'Emily Johnson',
+                            date: '2024-03-15',
+                            time: '10:30 AM',
+                            status: 'Upcoming'
+                        },
+                        {
+                            id: 2,
+                            patient: 'Michael Rodriguez',
+                            date: '2024-02-20',
+                            time: '2:45 PM',
+                            status: 'Completed'
+                        },
+                        {
+                            id: 3,
+                            patient: 'Sarah Williams',
+                            date: '2024-04-05',
+                            time: '11:15 AM',
+                            status: 'Upcoming'
+                        }
+                    ];
+                    this.currentFilter = 'All';
+                    this.initEventListeners();
+                    this.renderAppointments();
                 }
-                const data = await response.json();
-                
-                // Update dashboard doctor profile
-                document.getElementById('dashboardDoctorFirstName').textContent = data.doctor.fname;
-                document.getElementById('dashboardDoctorLastName').textContent = data.doctor.lname;
-                document.getElementById('dashboardDoctorSpecialization').textContent = data.doctor.specialization;
-                document.getElementById('dashboardMemberSince').textContent = `Member Since: ${data.doctor.created_at}`;
-                document.getElementById('dashboardDoctorExperience').textContent = `Experience: ${data.doctor.experience} Years`;
 
-                // Update schedule doctor profile
-                document.getElementById('scheduleDoctorFirstName').textContent = data.doctor.fname;
-                document.getElementById('scheduleDoctorLastName').textContent = data.doctor.lname;
-                document.getElementById('scheduleDoctorSpecialization').textContent = data.doctor.specialization;
-                document.getElementById('scheduleMemberSince').textContent = `Member Since: ${data.doctor.created_at}`;
-                document.getElementById('scheduleDoctorExperience').textContent = `Experience: ${data.doctor.experience} Years`;
+                initEventListeners() {
+                    // Filter buttons
+                    document.getElementById('btnAll').addEventListener('click', () => this.filterAppointments('All'));
+                    document.getElementById('btnUpcoming').addEventListener('click', () => this.filterAppointments('Upcoming'));
+                    document.getElementById('btnCompleted').addEventListener('click', () => this.filterAppointments('Completed'));
+                }
 
-                // Update dashboard statistics
-                document.getElementById('todayAppointments').textContent = data.today_appointments;
-                document.getElementById('totalPatients').textContent = data.total_patients;
-                document.getElementById('consultationHours').textContent = Math.round(data.today_appointments * 0.5);
+                filterAppointments(status) {
+                    // Update filter buttons style
+                    document.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.remove('bg-blue-100', 'text-blue-800');
+                        btn.classList.add('bg-gray-100', 'text-gray-800');
+                    });
 
-                // Update upcoming appointments
-                const appointmentsList = document.getElementById('upcomingAppointmentsList');
-                appointmentsList.innerHTML = ''; // Clear loading message
+                    document.getElementById(`btn${status}`).classList.remove('bg-gray-100', 'text-gray-800');
+                    document.getElementById(`btn${status}`).classList.add('bg-blue-100', 'text-blue-800');
 
-                if (data.upcoming_appointments.length === 0) {
-                    const noAppointmentsLi = document.createElement('li');
-                    noAppointmentsLi.className = 'py-4 text-center text-gray-500';
-                    noAppointmentsLi.textContent = 'No upcoming appointments';
-                    appointmentsList.appendChild(noAppointmentsLi);
-                } else {
-                    data.upcoming_appointments.forEach(appointment => {
-                        const li = document.createElement('li');
-                        li.className = 'py-4 flex justify-between items-center';
-                        li.innerHTML = `
-                            <div>
-                                <p class="text-gray-800 font-medium">${appointment.patient_name}</p>
-                                <p class="text-gray-500 text-sm">${appointment.appointment_date} at ${appointment.appointment_time}</p>
-                            </div>
-                            <span class="text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Scheduled</span>
+                    this.currentFilter = status;
+                    this.renderAppointments();
+                }
+
+                renderAppointments() {
+                    const tableBody = document.getElementById('appointmentsTableBody');
+                    tableBody.innerHTML = '';
+
+                    const filteredAppointments = this.currentFilter === 'All' 
+                        ? this.appointments 
+                        : this.appointments.filter(app => app.status === this.currentFilter);
+
+                    filteredAppointments.forEach(appointment => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${appointment.patient}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-500">${appointment.date} ${appointment.time}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 rounded-full text-xs ${
+                                    appointment.status === 'Upcoming' 
+                                    ? 'bg-blue-100 text-blue-800' 
+                                    : 'bg-green-100 text-green-800'
+                                }">${appointment.status}</span>
+                            </td>
                         `;
-                        appointmentsList.appendChild(li);
+                        tableBody.appendChild(row);
                     });
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to load doctor data. Please try again later.');
             }
-}
 
-// Appointments Data Management
-class AppointmentManager {
-        constructor() {
-            this.appointments = [
-                // Sample initial appointments
-                {
-                    id: 1,
-                    patient: 'Emily Johnson',
-                    date: '2024-03-15',
-                    time: '10:30 AM',
-                    status: 'Upcoming'
-                },
-                {
-                    id: 2,
-                    patient: 'Michael Rodriguez',
-                    date: '2024-02-20',
-                    time: '2:45 PM',
-                    status: 'Completed'
-                },
-                {
-                    id: 3,
-                    patient: 'Sarah Williams',
-                    date: '2024-04-05',
-                    time: '11:15 AM',
-                    status: 'Upcoming'
-                }
-            ];
-            this.currentFilter = 'All';
-            this.initEventListeners();
-            this.renderAppointments();
-        }
+            // Initialize appointment manager
+            const appointmentManager = new AppointmentManager();
 
-        initEventListeners() {
-            // Filter buttons
-            document.getElementById('btnAll').addEventListener('click', () => this.filterAppointments('All'));
-            document.getElementById('btnUpcoming').addEventListener('click', () => this.filterAppointments('Upcoming'));
-            document.getElementById('btnCompleted').addEventListener('click', () => this.filterAppointments('Completed'));
-        }
-
-        filterAppointments(status) {
-            // Update filter buttons style
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-100', 'text-blue-800');
-                btn.classList.add('bg-gray-100', 'text-gray-800');
-            });
-
-            document.getElementById(`btn${status}`).classList.remove('bg-gray-100', 'text-gray-800');
-            document.getElementById(`btn${status}`).classList.add('bg-blue-100', 'text-blue-800');
-
-            this.currentFilter = status;
-            this.renderAppointments();
-        }
-
-        renderAppointments() {
-            const tableBody = document.getElementById('appointmentsTableBody');
-            tableBody.innerHTML = '';
-
-            const filteredAppointments = this.currentFilter === 'All' 
-                ? this.appointments 
-                : this.appointments.filter(app => app.status === this.currentFilter);
-
-            filteredAppointments.forEach(appointment => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${appointment.patient}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500">${appointment.date} ${appointment.time}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 rounded-full text-xs ${
-                            appointment.status === 'Upcoming' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
-                        }">${appointment.status}</span>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-    }
-
-    // Initialize appointment manager
-    const appointmentManager = new AppointmentManager();
-
-// Fetch doctor data only when dashboard section is active
-document.addEventListener('DOMContentLoaded', function() {
-    const dashboardMenuItem = document.querySelector('[data-section="dashboard"]');
-    const scheduleMenuItem = document.querySelector('[data-section="schedule"]');
-    
-    // If dashboard is the initial active section, fetch data immediately
-    if (dashboardMenuItem.classList.contains('active')) {
-        fetchDoctorData();
-    }
-    if (scheduleMenuItem.classList.contains('active')) {
-        fetchDoctorData();
-    }
-    
-    // Add event listener to fetch data when dashboard becomes active
-    const menuItems = document.querySelectorAll('.menu-item');
-            menuItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const sectionId = this.getAttribute('data-section');
-                    
-                    // Only fetch doctor data when dashboard becomes active
-                    if (sectionId === 'dashboard') {
-                        fetchDoctorData();
-                    }
-                    if (sectionId === 'schedule') {
-                        fetchDoctorData();
-                    }
-                });
-            });
-        });
+        // Fetch doctor data only when dashboard section is active
         document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('[data-tab]');
-            const contentSections = document.querySelectorAll('.content-section');
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // Remove active classes
-                    tabs.forEach(t => {
-                        t.classList.remove('bg-sky-500', 'text-white', 'hover:bg-sky-600');
-                        t.classList.add('text-gray-600', 'hover:bg-gray-100');
+            const dashboardMenuItem = document.querySelector('[data-section="dashboard"]');
+            const scheduleMenuItem = document.querySelector('[data-section="schedule"]');
+            
+            // If dashboard is the initial active section, fetch data immediately
+            if (dashboardMenuItem.classList.contains('active')) {
+                fetchDoctorData();
+            }
+            if (scheduleMenuItem.classList.contains('active')) {
+                fetchDoctorData();
+            }
+            
+            // Add event listener to fetch data when dashboard becomes active
+            const menuItems = document.querySelectorAll('.menu-item');
+                    menuItems.forEach(item => {
+                        item.addEventListener('click', function() {
+                            const sectionId = this.getAttribute('data-section');
+                            
+                            // Only fetch doctor data when dashboard becomes active
+                            if (sectionId === 'dashboard') {
+                                fetchDoctorData();
+                            }
+                            if (sectionId === 'schedule') {
+                                fetchDoctorData();
+                            }
+                        });
                     });
-                    contentSections.forEach(c => c.classList.remove('active'));
-
-                    // Add active classes
-                    tab.classList.remove('text-gray-600', 'hover:bg-gray-100');
-                    tab.classList.add('bg-sky-500', 'text-white', 'hover:bg-sky-600');
-                    const contentId = `${tab.dataset.tab}-content`;
-                    document.getElementById(contentId).classList.add('active');
-
-                    // Fetch content
-                    fetchContent(tab.dataset.tab);
                 });
+                document.addEventListener('DOMContentLoaded', function() {
+                    const tabs = document.querySelectorAll('[data-tab]');
+                    const contentSections = document.querySelectorAll('.content-section');
+
+                    tabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            // Remove active classes
+                            tabs.forEach(t => {
+                                t.classList.remove('bg-sky-500', 'text-white', 'hover:bg-sky-600');
+                                t.classList.add('text-gray-600', 'hover:bg-gray-100');
+                            });
+                            contentSections.forEach(c => c.classList.remove('active'));
+
+                            // Add active classes
+                            tab.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                            tab.classList.add('bg-sky-500', 'text-white', 'hover:bg-sky-600');
+                            const contentId = `${tab.dataset.tab}-content`;
+                            document.getElementById(contentId).classList.add('active');
+
+                            // Fetch content
+                            fetchContent(tab.dataset.tab);
+                        });
+                    });
+
+                    // Initial content load
+                    fetchContent('profile');
+                });
+                
+        document.addEventListener('DOMContentLoaded', function() {
+            // Qualifications Edit Functionality
+            const qualificationsEditBtn = document.getElementById('editQualificationsBtn');
+            const qualificationsView = document.getElementById('qualificationsView');
+            const qualificationsEdit = document.getElementById('qualificationsEdit');
+            const qualificationsTextarea = document.getElementById('qualificationsTextarea');
+            const saveQualificationsBtn = document.getElementById('saveQualificationsBtn');
+            const cancelQualificationsBtn = document.getElementById('cancelQualificationsBtn');
+
+            // Education Edit Functionality
+            const educationEditBtn = document.getElementById('editEducationBtn');
+            const educationView = document.getElementById('educationView');
+            const educationEdit = document.getElementById('educationEdit');
+            const educationTextarea = document.getElementById('educationTextarea');
+            const saveEducationBtn = document.getElementById('saveEducationBtn');
+            const cancelEducationBtn = document.getElementById('cancelEducationBtn');
+
+            // Qualifications Edit Flow
+            qualificationsEditBtn.addEventListener('click', function() {
+                qualificationsView.classList.add('hidden');
+                qualificationsEdit.classList.remove('hidden');
             });
 
-            // Initial content load
-            fetchContent('profile');
-        });
-        
-document.addEventListener('DOMContentLoaded', function() {
-    // Qualifications Edit Functionality
-    const qualificationsEditBtn = document.getElementById('editQualificationsBtn');
-    const qualificationsView = document.getElementById('qualificationsView');
-    const qualificationsEdit = document.getElementById('qualificationsEdit');
-    const qualificationsTextarea = document.getElementById('qualificationsTextarea');
-    const saveQualificationsBtn = document.getElementById('saveQualificationsBtn');
-    const cancelQualificationsBtn = document.getElementById('cancelQualificationsBtn');
-
-    // Education Edit Functionality
-    const educationEditBtn = document.getElementById('editEducationBtn');
-    const educationView = document.getElementById('educationView');
-    const educationEdit = document.getElementById('educationEdit');
-    const educationTextarea = document.getElementById('educationTextarea');
-    const saveEducationBtn = document.getElementById('saveEducationBtn');
-    const cancelEducationBtn = document.getElementById('cancelEducationBtn');
-
-    // Qualifications Edit Flow
-    qualificationsEditBtn.addEventListener('click', function() {
-        qualificationsView.classList.add('hidden');
-        qualificationsEdit.classList.remove('hidden');
-    });
-
-    cancelQualificationsBtn.addEventListener('click', function() {
-        qualificationsView.classList.remove('hidden');
-        qualificationsEdit.classList.add('hidden');
-    });
-
-    saveQualificationsBtn.addEventListener('click', function() {
-        const qualificationsText = qualificationsTextarea.value.trim();
-
-        fetch('connection.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `section=qualifications&content=${encodeURIComponent(qualificationsText)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                qualificationsView.innerHTML = `<p>${qualificationsText}</p>`;
+            cancelQualificationsBtn.addEventListener('click', function() {
                 qualificationsView.classList.remove('hidden');
                 qualificationsEdit.classList.add('hidden');
-            } else {
-                alert('Failed to update qualifications: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating qualifications');
-        });
-    });
+            });
 
-    // Education Edit Flow
-    educationEditBtn.addEventListener('click', function() {
-        educationView.classList.add('hidden');
-        educationEdit.classList.remove('hidden');
-    });
+            saveQualificationsBtn.addEventListener('click', function() {
+                const qualificationsText = qualificationsTextarea.value.trim();
 
-    cancelEducationBtn.addEventListener('click', function() {
-        educationView.classList.remove('hidden');
-        educationEdit.classList.add('hidden');
-    });
+                fetch('connection.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `section=qualifications&content=${encodeURIComponent(qualificationsText)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        qualificationsView.innerHTML = `<p>${qualificationsText}</p>`;
+                        qualificationsView.classList.remove('hidden');
+                        qualificationsEdit.classList.add('hidden');
+                    } else {
+                        alert('Failed to update qualifications: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating qualifications');
+                });
+            });
 
-    saveEducationBtn.addEventListener('click', function() {
-        const educationText = educationTextarea.value.trim();
+            // Education Edit Flow
+            educationEditBtn.addEventListener('click', function() {
+                educationView.classList.add('hidden');
+                educationEdit.classList.remove('hidden');
+            });
 
-        fetch('connection.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `section=education&content=${encodeURIComponent(educationText)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                educationView.innerHTML = `<p>${educationText}</p>`;
+            cancelEducationBtn.addEventListener('click', function() {
                 educationView.classList.remove('hidden');
                 educationEdit.classList.add('hidden');
-            } else {
-                alert('Failed to update education: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating education');
-        });
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const singleDateInput = document.getElementById('singleDateInput');
-    const addDateButton = document.getElementById('addDateButton');
-    const selectedDatesContainer = document.getElementById('selectedDatesContainer');
-    const saveScheduleButton = document.getElementById('saveSchedule');
-    const timeSlotsContainer = document.getElementById('timeSlots');
-    const timeSlotTemplate = document.getElementById('timeSlotTemplate');
-    
-    // Store selected dates
-    const selectedDates = new Set();
-
-    // Populate time slots dynamically
-    function populateTimeSlots() {
-        const timeSlots = [
-            '09:00 AM', '10:00 AM', '11:00 AM',
-            '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'
-        ];
-
-        timeSlotsContainer.innerHTML = ''; // Clear existing slots
-
-        timeSlots.forEach(slot => {
-            const timeSlotElement = timeSlotTemplate.content.cloneNode(true);
-            timeSlotElement.querySelector('.time-label').textContent = slot;
-            timeSlotsContainer.appendChild(timeSlotElement);
-        });
-    }
-
-    // Add date button click handler
-    addDateButton.addEventListener('click', () => {
-        const selectedDate = singleDateInput.value;
-        
-        if (selectedDate && !selectedDates.has(selectedDate)) {
-            // Add date to the set
-            selectedDates.add(selectedDate);
-            
-            // Create a chip/tag for the selected date
-            const dateChip = document.createElement('div');
-            dateChip.className = 'bg-blue-100 px-2 py-1 rounded flex items-center';
-            dateChip.innerHTML = `
-                ${selectedDate}
-                <button class="ml-2 text-red-500 remove-date" data-date="${selectedDate}">×</button>
-            `;
-            
-            // Add to container
-            selectedDatesContainer.appendChild(dateChip);
-        }
-    });
-
-    // Remove date functionality
-    selectedDatesContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-date')) {
-            const dateToRemove = e.target.getAttribute('data-date');
-            selectedDates.delete(dateToRemove);
-            e.target.closest('div').remove();
-        }
-    });
-
-    // Save schedule to the database
-    function saveSchedule() {
-        // Get all selected dates
-        const datesArray = Array.from(selectedDates);
-
-        // Get time slots
-        const timeSlots = Array.from(
-            timeSlotsContainer.querySelectorAll('.time-label')
-        ).map(label => label.textContent);
-
-        if (datesArray.length === 0) {
-            alert('Please select at least one date.');
-            return;
-        }
-
-        fetch('connection.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-                dates: datesArray, 
-                slots: timeSlots 
-            })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    alert('Schedule saved successfully!');
-                } else {
-                    alert(`Error saving schedule: ${data.error}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while saving the schedule.');
             });
-    }
 
-    // Event listener for save schedule button
-    saveScheduleButton.addEventListener('click', saveSchedule);
+            saveEducationBtn.addEventListener('click', function() {
+                const educationText = educationTextarea.value.trim();
 
-    // Populate time slots on page load
-    populateTimeSlots();
-        // Load reviews
-        function loadReviews() {
-            fetch('connection.php')
-            .then(response => response.json())
-            .then(reviews => {
-                reviewsContainer.innerHTML = ''; // Clear existing reviews
-                reviews.forEach(review => {
-                    const reviewElement = document.createElement('div');
-                    reviewElement.classList.add('bg-gray-50', 'p-4', 'rounded-lg');
-                    reviewElement.innerHTML = `
-                        <div class="flex justify-between">
-                            <h3 class="font-bold text-gray-800">${review.name}</h3>
-                            <div class="text-yellow-500">
-                                ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
-                            </div>
-                        </div>
-                        <p class="mt-2 text-gray-600">${review.comment || 'No comment'}</p>
-                        <small class="text-gray-500">${moment(review.created_at).format('MMMM D, YYYY')}</small>
-                    `;
-                    reviewsContainer.appendChild(reviewElement);
+                fetch('connection.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `section=education&content=${encodeURIComponent(educationText)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        educationView.innerHTML = `<p>${educationText}</p>`;
+                        educationView.classList.remove('hidden');
+                        educationEdit.classList.add('hidden');
+                    } else {
+                        alert('Failed to update education: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating education');
                 });
-            })
-            .catch(error => {
-                console.error('Error loading reviews:', error);
             });
-        }
+        });
 
-        // Initial reviews load
-        loadReviews();
-    });
+        document.addEventListener('DOMContentLoaded', () => {
+            const singleDateInput = document.getElementById('singleDateInput');
+            const addDateButton = document.getElementById('addDateButton');
+            const selectedDatesContainer = document.getElementById('selectedDatesContainer');
+            const saveScheduleButton = document.getElementById('saveSchedule');
+            const timeSlotsContainer = document.getElementById('timeSlots');
+            const timeSlotTemplate = document.getElementById('timeSlotTemplate');
+            
+            // Store selected dates
+            const selectedDates = new Set();
+
+            // Populate time slots dynamically
+            function populateTimeSlots() {
+                const timeSlots = [
+                    '09:00 AM', '10:00 AM', '11:00 AM',
+                    '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'
+                ];
+
+                timeSlotsContainer.innerHTML = ''; // Clear existing slots
+
+                timeSlots.forEach(slot => {
+                    const timeSlotElement = timeSlotTemplate.content.cloneNode(true);
+                    timeSlotElement.querySelector('.time-label').textContent = slot;
+                    timeSlotsContainer.appendChild(timeSlotElement);
+                });
+            }
+
+            // Add date button click handler
+            addDateButton.addEventListener('click', () => {
+                const selectedDate = singleDateInput.value;
+                
+                if (selectedDate && !selectedDates.has(selectedDate)) {
+                    // Add date to the set
+                    selectedDates.add(selectedDate);
+                    
+                    // Create a chip/tag for the selected date
+                    const dateChip = document.createElement('div');
+                    dateChip.className = 'bg-blue-100 px-2 py-1 rounded flex items-center';
+                    dateChip.innerHTML = `
+                        ${selectedDate}
+                        <button class="ml-2 text-red-500 remove-date" data-date="${selectedDate}">×</button>
+                    `;
+                    
+                    // Add to container
+                    selectedDatesContainer.appendChild(dateChip);
+                }
+            });
+
+            // Remove date functionality
+            selectedDatesContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-date')) {
+                    const dateToRemove = e.target.getAttribute('data-date');
+                    selectedDates.delete(dateToRemove);
+                    e.target.closest('div').remove();
+                }
+            });
+
+            // Save schedule to the database
+            function saveSchedule() {
+                // Get all selected dates
+                const datesArray = Array.from(selectedDates);
+
+                // Get time slots
+                const timeSlots = Array.from(
+                    timeSlotsContainer.querySelectorAll('.time-label')
+                ).map(label => label.textContent);
+
+                if (datesArray.length === 0) {
+                    alert('Please select at least one date.');
+                    return;
+                }
+
+                fetch('connection.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        dates: datesArray, 
+                        slots: timeSlots 
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            alert('Schedule saved successfully!');
+                        } else {
+                            alert(`Error saving schedule: ${data.error}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while saving the schedule.');
+                    });
+            }
+
+            // Event listener for save schedule button
+            saveScheduleButton.addEventListener('click', saveSchedule);
+
+            // Populate time slots on page load
+            populateTimeSlots();
+                // Load reviews
+                function loadReviews() {
+                    fetch('connection.php')
+                    .then(response => response.json())
+                    .then(reviews => {
+                        reviewsContainer.innerHTML = ''; // Clear existing reviews
+                        reviews.forEach(review => {
+                            const reviewElement = document.createElement('div');
+                            reviewElement.classList.add('bg-gray-50', 'p-4', 'rounded-lg');
+                            reviewElement.innerHTML = `
+                                <div class="flex justify-between">
+                                    <h3 class="font-bold text-gray-800">${review.name}</h3>
+                                    <div class="text-yellow-500">
+                                        ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-gray-600">${review.comment || 'No comment'}</p>
+                                <small class="text-gray-500">${moment(review.created_at).format('MMMM D, YYYY')}</small>
+                            `;
+                            reviewsContainer.appendChild(reviewElement);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading reviews:', error);
+                    });
+                }
+
+                // Initial reviews load
+                loadReviews();
+            });
     </script>
 </body>
 </html>

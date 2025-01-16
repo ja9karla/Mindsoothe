@@ -1,80 +1,37 @@
 <?php
         include("auth.php");
 
-        // Text moderation function
-        function moderateText($text) {
-        // List of words/phrases to be flagged
-        $badWords = [
-            'puta', 'bwisit', 'gago', 'tanga', 'bobo', 'salot', 'pekeng', 'bakla', 'gaga', 'putangina',
-            'ang kapal mo', 'mamatay ka na', 'ugok', 'wag ka makialam', 'katangahan', 'loko', 'sira ulo', 
-            'haliparot', 'putangina mo', 'tangina mo', 'chismis', 'mukhang pera', 'patay gutom', 
-            'mang-uuto', 'kasama sa buhay', 'hipokrito', 'unano', 'aswang', 'mangkukulam', 'mayabang', 
-            'malandi', 'hudas', 'maasim ang mukha', 'sugapa', 'maka-appeal', 'bulok', 'tanga ka', 
-            'fuck', 'shit', 'asshole', 'bitch', 'damn', 'cunt', 'motherfucker', 'bastard', 'dick', 
-            'pussy', 'nigga', 'whore', 'slut', 'cocksucker', 'retard', 'crackhead', 'twat', 'fag', 
-            'kike', 'chink', 'gook', 'spic', 'raghead', 'sandnigger', 'dirty Jew', 'wog', 'kaffir', 
-            'nazi', 'towelhead', 'beaner', 'polack', 'dago', 'yid', 'wop', 'cholo', 'gypo', 'prick', 
-            'cunt', 'whore', 'pikey', 'inbred', 'hillbilly', 'redneck', 'mamatay'
-        ];
-        
-        
-        // Replace flagged words with '[redacted]' and set the detection flag
-        foreach ($badWords as $word) {
-            $pattern = '/\b' . preg_quote($word, '/') . '\b/i'; // Case insensitive word boundary matching
-            if (preg_match($pattern, $text)) {
-                $detected = true; // Set flag if bad word is found
-                $text = preg_replace($pattern, '[redacted]', $text);
-            }
-        }
+        // Get user_id from email
+    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->bind_param("s", $_SESSION['email']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $user_id = $user['id'];
 
-        return $text;
+            // Function to check if user has completed PHQ-9 within last 6 months
+            function hasRecentPHQ9($conn, $user_id) {
+                $sql = "SELECT response_date FROM phq9_responses 
+                        WHERE user_id = ? 
+                        AND response_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+                        ORDER BY response_date DESC LIMIT 1";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+                
+        if ($row = $result->fetch_assoc()) {
+            $last_response_date = new DateTime($row['response_date']);
+            $next_available_date = $last_response_date->add(new DateInterval('P6M'));
+            return [true, $next_available_date->format('Y-m-d')];
+        }
+        
+        return [false, null];
     }
 
-    // Handle post submission
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['postText'])) {
-        $content = mysqli_real_escape_string($conn, $_POST['postText']);
-        
-        // Moderate the post content
-        $moderatedContent = moderateText($content);
-
-        if (!empty($moderatedContent)) {
-            // Insert the moderated post into the Graceful_Thread table
-            $insertPost = "INSERT INTO GracefulThread (user_id, content) VALUES ('$userId', '$moderatedContent')";
-            
-            if (mysqli_query($conn, $insertPost)) {
-                // Redirect to the same page to prevent form resubmission on page refresh
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit(); // Ensure no further code is executed
-            } else {
-                // Display error alert with the MySQL error
-                echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
-            }
-        } else {
-            // Display alert for empty content
-            echo "<script>alert('Post content cannot be empty!');</script>";
-        }
-    }
-        // Handle like/unlike actions
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['like_button'])) {
-            $postId = $_POST['post_id'];
-        
-            // Check if the user has already liked the post
-            $checkLikeQuery = mysqli_query($conn, "SELECT * FROM post_likes WHERE user_id='$userId' AND post_id='$postId'");
-        
-            if (mysqli_num_rows($checkLikeQuery) > 0) {
-                // User has already liked the post, so unlike it (delete the record)
-                $deleteLikeQuery = "DELETE FROM post_likes WHERE user_id='$userId' AND post_id='$postId'";
-                mysqli_query($conn, $deleteLikeQuery);
-        } else {
-                // User hasn't liked the post, so like it (insert a new record)
-                $insertLikeQuery = "INSERT INTO post_likes (user_id, post_id) VALUES ('$userId', '$postId')";
-                mysqli_query($conn, $insertLikeQuery);
-            }
-
-            // Redirect to prevent form resubmission on page refresh
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
-        }
+    // Get user's PHQ-9 status
+    [$has_recent_phq9, $next_available_date] = hasRecentPHQ9($conn, $user_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -187,10 +144,60 @@
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container mx-auto px-4 py-8">
-        <!-- Questionnaire Instructions -->
-        <div id="instructionsContainer" class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8">
+   <!-- Main Container -->
+   <?php if ($has_recent_phq9): ?>
+    
+   <div class="container mx-auto px-4 py-8">
+        <!-- Show message when questionnaire is not available -->
+        <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+                PHQ-9 Questionnaire Not Available
+            </h2>
+            <div class="text-center">
+                <p class="text-gray-600 mb-6">
+                    You have already completed the PHQ-9 questionnaire within the last 6 months.
+                    You can take it again on: <strong><?php echo $next_available_date; ?></strong>
+                </p>
+                <p class="text-gray-600">
+                    This restriction helps ensure accurate tracking of your mental health over time.
+                </p>
+                <a href="MHProfile.php" 
+                
+                class="inline-block mt-6 bg-white text-[#1cabe3] font-bold border-2 border-[#1cabe3] py-3 px-6 rounded-lg hover:bg-[#1cabe3] hover:text-white transition duration-300">
+                    View Mental Wellness Companion
+                </a>
+            
+            </div>
+        </div>
+        <?php else: ?>
+            <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8 mt-8">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Important Disclaimer</h2>
+        <div class="text-left space-y-4 mb-6">
+            <p class="text-gray-700">Please read the following information carefully before proceeding:</p>
+            <ul class="list-disc list-inside text-gray-700 space-y-2">
+                <li>The PHQ-9 is a <span class="font-semibold">screening tool</span>, not a diagnostic instrument.</li>
+                <li>This questionnaire is designed to help assess the severity of depression symptoms.</li>
+                <li>Results from this assessment should not be considered as a clinical diagnosis.</li>
+                <li>For a proper diagnosis and treatment plan, please consult with a qualified mental health professional.</li>
+                <li>If you're experiencing thoughts of self-harm or suicide, please seek immediate professional help.</li>
+            </ul>
+            <div class="mt-6 bg-blue-50 p-4 rounded-lg">
+                <p class="text-blue-800 text-sm">
+                    Emergency Contacts:<br>
+                    National Center for Mental Health Crisis Hotline: (0917) 899-8727<br>
+                    For immediate assistance, dial: 911
+                </p>
+            </div>
+        </div>
+        <div class="text-center">
+            <button id="acknowledgeDisclaimer"
+                class="bg-white text-[#1cabe3] font-bold border-2 border-[#1cabe3] py-3 px-6 rounded-lg hover:bg-[#1cabe3] hover:text-white transition duration-300">
+                I Understand & Wish to Continue
+            </button>
+        </div>
+    </div>
+    <!-- <div id="instructionsContainer" class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8"> -->
+    <div id="instructionsContainer" class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8 mt-8 hidden">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
                 <span class="text-[#1cabe3]">PHQ-9</span> Mental <span class="text-[#1cabe3]">Health</span> Screening
             </h2>
@@ -309,8 +316,30 @@
         </div>
     </div>
 
+        <?php endif; ?>
+        <!-- Questionnaire Instructions -->
+        
     <script>
+        if (<?php echo $has_recent_phq9 ? 'true' : 'false'; ?>) {
+        // If questionnaire was recently completed, hide the start button
+        const startButton = document.getElementById('startQuestionnaire');
+        if (startButton) {
+            startButton.style.display = 'none';
+        }
+    }
         document.addEventListener('DOMContentLoaded', function() {
+             // Only initialize if questionnaire is available
+    if (!<?php echo $has_recent_phq9 ? 'true' : 'false'; ?>) {
+        const acknowledgeButton = document.getElementById('acknowledgeDisclaimer');
+        const instructionsContainer = document.getElementById('instructionsContainer');
+
+        acknowledgeButton.addEventListener('click', () => {
+            // Hide disclaimer
+            acknowledgeButton.closest('.max-w-2xl').style.display = 'none';
+            // Show instructions
+            instructionsContainer.classList.remove('hidden');
+        });
+    }
             const questions = [
                 "1. Little interest or pleasure in doing things",
                 "2. Feeling down, depressed, or hopeless",
@@ -423,7 +452,33 @@
 
             function calculateResults() {
                 const total = answers.reduce((sum, ans) => sum + (ans !== null ? ans : 0), 0);
-                
+                // Add this inside calculateResults() function, after calculating the total
+const formData = {
+    answers: answers,
+    total_score: total
+};
+
+// Send the data to PHP
+fetch('save_phq9.php', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+})
+.then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error('Error saving responses:', data.message);
+            alert('There was an error saving your responses. Please try again.');
+        } else {
+            // Show results modal only after successful save
+            toggleModal(questionModal, false);
+            calculateAndDisplayResults();
+            toggleModal(resultsModal);
+        }
+    })
+
                 let severity = 'Minimal Depression';
                 if (total >= 5) severity = 'Mild Depression';
                 if (total >= 10) severity = 'Moderate Depression';
