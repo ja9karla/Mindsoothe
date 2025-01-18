@@ -2,7 +2,7 @@
 session_start();
 
 // Database connection
-include("../connect.php");
+include("connect.php");
 
 // Check if doctor is logged in
 if (!isset($_SESSION['doctor_id'])) {

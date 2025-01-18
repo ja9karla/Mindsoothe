@@ -1,7 +1,7 @@
 <?php
   session_start();
   // Database connection
-  include("../connect.php");
+  include("connect.php");
   $message = '';
 
 

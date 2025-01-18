@@ -1,6 +1,5 @@
-create database _Mindsoothe;
-use _Mindsoothe;
-drop Table Users;
+
+
 CREATE TABLE Users (
 id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 Student_id INT(7) NOT NULL,
@@ -33,14 +32,14 @@ likes INT (10) DEFAULT 0,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
 );
-drop table GracefulThread;
+
 CREATE TABLE post_likes (
     id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id INT(10) NOT NULL,
     post_id INT(10) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-drop table post_likes;
+
 CREATE TABLE phq9_responses (
     id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id INT(10) NOT NULL,
@@ -78,7 +77,7 @@ values     ('Aiah', 'Arceta', 'aiah@usl.edu.ph', 'SACE', '123', 'images/blueuser
 
 insert into mhp (fname, lname, email, department, password, profile_image, created_at)
 values     ('Aiah', 'Arceta', 'aiah.arceta@usl.edu.ph', 'SACE', '202cb962ac59075b964b07152d234b70', 'images/blueuser.svg', CURRENT_TIMESTAMP);
-drop table MHP;
+
 
 select * from MHP;
 
@@ -91,9 +90,7 @@ CREATE TABLE patients (
     gender ENUM('Male', 'Female', 'Other'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-drop table patients;
-select * from MHP;
-drop table MHP_sched;
+
 
 CREATE TABLE Messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
