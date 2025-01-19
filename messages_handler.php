@@ -1,68 +1,119 @@
 <?php
-// messages_handler.php
 include("auth.php");
+include("config.php");
 
-// Function to get chat history
-function getChatHistory($student_id, $mhp_id) {
-    global $conn;
-    
-    $sql = "SELECT * FROM Messages 
-            WHERE (sender_id = ? AND sender_type = 'student' AND receiver_id = ? AND receiver_type = 'MHP')
-            OR (sender_id = ? AND sender_type = 'MHP' AND receiver_id = ? AND receiver_type = 'student')
-            ORDER BY timestamp ASC";
-            
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("iiii", $student_id, $mhp_id, $mhp_id, $student_id);
+// Consistent error handling
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+header('Content-Type: application/json');
+
+// Function to send JSON response
+function sendResponse($success, $data = null, $error = null) {
+    echo json_encode([
+        'success' => $success,
+        'data' => $data,
+        'error' => $error
+    ]);
+    exit;
+}
+
+try {
+    // Verify database connection
+    if (!isset($conn) || $conn->connect_error) {
+        throw new Exception("Database connection failed: " . ($conn->connect_error ?? 'Unknown error'));
+    }
+
+    // Verify authentication
+    if (!isset($_SESSION['email'])) {
+        sendResponse(false, null, 'Not authenticated');
+    }
+
+    // Get student ID
+    $email = $_SESSION['email'];
+    $stmt = $conn->prepare("SELECT id FROM Users WHERE email = ?");
+    if (!$stmt) {
+        throw new Exception("Prepare failed: " . $conn->error);
+    }
+    $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
-    
-    $messages = [];
-    while ($row = $result->fetch_assoc()) {
-        $messages[] = $row;
+    if ($row = $result->fetch_assoc()) {
+        $sender_id = $row['id'];
+    } else {
+        sendResponse(false, null, 'Student not found in database');
     }
-    
-    return $messages;
-}
 
-// Function to save new message
-function saveMessage($sender_id, $receiver_id, $message) {
-    global $conn;
-    
-    $sql = "INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message) 
-            VALUES (?, 'student', ?, 'MHP', ?)";
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $action = $_POST['action'] ?? '';
+
+        if ($action === 'send_message') {
+            $receiver_id = isset($_POST['mhp_id']) ? (int)$_POST['mhp_id'] : null;
+            $message = isset($_POST['message']) ? trim($_POST['message']) : '';
+
+            // Log the attempt for debugging
+            error_log("Message attempt - Sender ID: $sender_id, Receiver ID: $receiver_id, Message: $message");
+
+            if (!$receiver_id || empty($message)) {
+                sendResponse(false, null, 'Missing required parameters');
+            }
+
+            $sql = "INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message) 
+                    VALUES (?, 'student', ?, 'MHP', ?)";
             
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
-    
-    return $stmt->execute();
-}
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $conn->error);
+            }
+            $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
+            
+            if ($stmt->execute()) {
+                sendResponse(true, [
+                    'message_id' => $conn->insert_id,
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'sender_id' => $sender_id
+                ]);
+            } else {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+        } elseif ($action === 'get_history') {
+            $receiver_id = isset($_POST['mhp_id']) ? (int)$_POST['mhp_id'] : null;
 
-// API endpoint for getting chat history
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_history') {
-    $mhp_id = $_GET['mhp_id'] ?? null;
-    $student_id = $_SESSION['user_id'] ?? null;
-    
-    if ($mhp_id && $student_id) {
-        $messages = getChatHistory($student_id, $mhp_id);
-        echo json_encode(['success' => true, 'messages' => $messages]);
-    } else {
-        echo json_encode(['success' => false, 'error' => 'Missing parameters']);
-    }
-    exit;
-}
+            if (!$receiver_id) {
+                sendResponse(false, null, 'Missing required parameters');
+            }
 
-// API endpoint for sending message
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_message') {
-    $mhp_id = $_POST['mhp_id'] ?? null;
-    $message = $_POST['message'] ?? null;
-    $student_id = $_SESSION['user_id'] ?? null;
-    
-    if ($mhp_id && $message && $student_id) {
-        $success = saveMessage($student_id, $mhp_id, $message);
-        echo json_encode(['success' => $success]);
+            $sql = "SELECT sender_id, receiver_id, message, sender_type, created_at 
+                    FROM Messages 
+                    WHERE (sender_id = ? AND receiver_id = ?) 
+                       OR (sender_id = ? AND receiver_id = ?)
+                    ORDER BY created_at ASC";
+            
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $conn->error);
+            }
+            $stmt->bind_param("iiii", $sender_id, $receiver_id, $receiver_id, $sender_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $messages = [];
+            while ($row = $result->fetch_assoc()) {
+                $messages[] = [
+                    'message' => $row['message'],
+                    'sender_type' => $row['sender_type'],
+                    'timestamp' => $row['created_at']
+                ];
+            }
+
+            sendResponse(true, ['messages' => $messages]);
+        } else {
+            sendResponse(false, null, 'Invalid action');
+        }
     } else {
-        echo json_encode(['success' => false, 'error' => 'Missing parameters']);
+        sendResponse(false, null, 'Invalid request method');
     }
-    exit;
+} catch (Exception $e) {
+    error_log("Error: " . $e->getMessage());
+    sendResponse(false, null, 'Server error occurred. Please try again later.');
 }
 ?>

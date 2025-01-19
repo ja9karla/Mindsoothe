@@ -3,7 +3,6 @@ session_start();
 
 // Database connection
 include("connect.php");
-
 // Check if doctor is logged in
 if (!isset($_SESSION['doctor_id'])) {
     http_response_code(401);
@@ -161,3 +160,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->close();
     exit();
 }
+?>

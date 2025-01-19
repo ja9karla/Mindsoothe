@@ -1,66 +1,77 @@
 <?php
         include("auth.php");
    // Your database connection file
-
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
-        if ($_POST['action'] == 'send_message') {
-            // Get the student ID from session
-            $sender_id = $_SESSION['user_id']; // Make sure this matches your session variable name
-            $sender_type = 'student';
-            $receiver_id = isset($_POST['mhp_id']) ? (int)$_POST['mhp_id'] : null;
-            $receiver_type = 'MHP';
-
-            $message = isset($_POST['message']) ? trim($_POST['message']) : '';
-
-            if (!$receiver_id || empty($message)) {
-                echo json_encode(["status" => "error", "message" => "Missing parameters"]);
-                exit;
-            }
-
-            $stmt = $conn->prepare("INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message, timestamp) VALUES (?, ?, ?, ?, ?, NOW())");
-            $stmt->bind_param("issss", $sender_id, $sender_type, $receiver_id, $receiver_type, $message);
-            
-            if ($stmt->execute()) {
-                echo json_encode(["status" => "success", "message" => "Message sent"]);
-            } else {
-                echo json_encode(["status" => "error", "message" => "Failed to send message"]);
-            }
-        }
-
-        if ($_POST['action'] == 'load_chat_history') {
-            $receiver_id = isset($_POST['mhp_id']) ? (int)$_POST['mhp_id'] : null;
-            if (!$receiver_id) {
-                echo json_encode(["status" => "error", "message" => "Missing parameters"]);
-                exit;
-            }
-
-            include("messages_handler.php");
-            $chat_history = getChatHistory($_SESSION['user_id'], $receiver_id);
-            echo json_encode(["status" => "success", "chat_history" => $chat_history]);
-        }
+// First, get the student_id based on the email in the session
+if (isset($_SESSION['email'])) {
+    $email = $_SESSION['email'];
+    $sql = "SELECT id FROM Users WHERE email = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($row = $result->fetch_assoc()) {
+        $sender_id = $row['id'];
+    } else {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Student not found in database',
+            'debug_email' => $email
+        ]);
+        exit;
     }
+} else {
+    echo json_encode([
+        'success' => false,
+        'error' => 'Email not found in session',
+        'session_data' => $_SESSION
+    ]);
+    exit;
+}
 
-    function getChatHistory($student_id, $mhp_id) {
-        global $conn;
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $action = $_POST['action'] ?? '';
+    
+    if ($action === 'send_message') {
+        $receiver_id = isset($_POST['mhp_id']) ? (int)$_POST['mhp_id'] : null;
+        $message = isset($_POST['message']) ? trim($_POST['message']) : '';
 
-        $sql = "SELECT * FROM Messages 
-                WHERE (sender_id = ? AND sender_type = 'student' AND receiver_id = ? AND receiver_type = 'MHP')
-                OR (sender_id = ? AND sender_type = 'MHP' AND receiver_id = ? AND receiver_type = 'student')
-                ORDER BY timestamp ASC";
+        // Log the attempt for debugging
+        error_log("Message attempt - Sender ID: $sender_id, Receiver ID: $receiver_id, Message: $message");
 
+        if (!$receiver_id || empty($message)) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Missing required parameters'
+            ]);
+            exit;
+        }
+
+        $sql = "INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message) 
+                VALUES (?, 'student', ?, 'MHP', ?)";
+        
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiii", $student_id, $mhp_id, $mhp_id, $student_id);
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-        $chat_history = [];
-
-        while ($row = $result->fetch_assoc()) {
-            $chat_history[] = $row;
+        $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
+        
+        if ($stmt->execute()) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Message sent successfully',
+                'data' => [
+                    'message_id' => $conn->insert_id,
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'sender_id' => $sender_id
+                ]
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to send message: ' . $stmt->error
+            ]);
         }
-
-        return $chat_history;
     }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -73,6 +84,7 @@
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css'>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
     <style>
         body {
             background-color: #f4f7f6;
@@ -210,6 +222,7 @@
                                 Start Chat
                             </button>
                         </div>
+
                     </div>
                 </div>';
             }
@@ -247,6 +260,92 @@
     ?>
 
 <script>
+    const pusher = new Pusher('561b69476711bf54f56f', {
+    cluster: 'ap1',
+    encrypted: true
+    });
+
+    let currentChannel = null;
+
+    function initializePusher(userId) {
+        // Unsubscribe from previous channel if exists
+        if (currentChannel) {
+            pusher.unsubscribe(currentChannel.name);
+        }
+
+        // Subscribe to user's channel
+        const channelName = `chat_${userId}`;
+        currentChannel = pusher.subscribe(channelName);
+
+        // Bind to new message events
+        currentChannel.bind('new_message', function(data) {
+            // Only add message to chat if it's for the current conversation
+            if ((data.sender_id === currentMhpId && data.receiver_id === userId) ||
+                (data.sender_id === userId && data.receiver_id === currentMhpId)) {
+                
+                const messageType = data.sender_id === userId ? 'sent' : 'received';
+                const messageElement = createMessageElement(data.message, messageType);
+                
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+    }
+
+    // Modify the openChat function
+    function openChat(mhpId, mhpName) {
+        currentMhpId = mhpId;
+        document.getElementById('listingView').classList.add('opacity-0');
+        document.getElementById('chatWindow').classList.remove('hidden');
+        document.getElementById('chatHeader').textContent = `Chat with ${mhpName}`;
+        
+        // Initialize Pusher with the current user's ID
+        initializePusher(userId); // You'll need to make userId available from PHP
+        
+        loadChatHistory(mhpId);
+    }
+
+    // Modify the sendMessage function
+    // Modify the sendMessage function
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (message && currentMhpId) {
+            // Clear input immediately for better UX
+            input.value = '';
+            
+            const formData = new FormData();
+            formData.append('action', 'send_message');
+            formData.append('mhp_id', currentMhpId);
+            formData.append('message', message);
+            
+            fetch('messages_handler.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data); // Log the response for debugging
+                if (data.success) {
+                    // Add the sent message to the chat window
+                    const messageElement = createMessageElement(message, 'sent');
+                    const chatMessages = document.getElementById('chatMessages');
+                    chatMessages.appendChild(messageElement);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    console.error('Failed to send message:', data.error);
+                    alert('Failed to send message. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please check your connection and try again.');
+            });
+        }
+    }
+
     // Define createMessageElement function first
     function createMessageElement(message, type) {
         const div = document.createElement('div');
@@ -272,35 +371,9 @@
         return div;
     }
 
-    // Section switching functionality
-    const menuItems = document.querySelectorAll('.menu-item');
-    const sections = document.querySelectorAll('.section');
-    
-    menuItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            if (this.getAttribute('data-section')) {
-                e.preventDefault();
-                
-                menuItems.forEach(mi => mi.classList.remove('active'));
-                sections.forEach(section => section.classList.remove('active'));
-                
-                this.classList.add('active');
-                
-                const sectionId = this.getAttribute('data-section');
-                document.getElementById(`${sectionId}-section`).classList.add('active');
-            }
-        });
-    });
-
     let currentMhpId = null;
 
-    function openChat(mhpId, mhpName) {
-        currentMhpId = mhpId;
-        document.getElementById('listingView').classList.add('opacity-0');
-        document.getElementById('chatWindow').classList.remove('hidden');
-        document.getElementById('chatHeader').textContent = `Chat with ${mhpName}`;
-        loadChatHistory(mhpId);
-    }
+    
 
     function closeChat() {
         document.getElementById('listingView').classList.remove('opacity-0');
@@ -335,53 +408,49 @@
         .catch(error => console.error('Error loading chat history:', error));
     }
 
-    function sendMessage() {
-        const input = document.getElementById('messageInput');
-        const message = input.value.trim();
+
+    // Then add your DOMContentLoaded event listener
+    document.addEventListener('DOMContentLoaded', function() {
+        // Section switching functionality
+        const menuItems = document.querySelectorAll('.menu-item');
+        const sections = document.querySelectorAll('.section');
         
-        if (message && currentMhpId) {
-            // Add message to chat immediately for responsiveness
-            const messageElement = createMessageElement(message, 'sent');
-            document.getElementById('chatMessages').appendChild(messageElement);
-            
-            // Clear input and scroll to bottom
-            input.value = '';
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Send message to server
-            const formData = new FormData();
-            formData.append('action', 'send_message');
-            formData.append('mhp_id', currentMhpId);
-            formData.append('message', message);
-            
-            fetch('messages_handler.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    console.error('Failed to send message:', data.error);
-                    // Optionally show error to user
-                    alert('Failed to send message. Please try again.');
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (this.getAttribute('data-section')) {
+                    e.preventDefault();
+                    menuItems.forEach(mi => mi.classList.remove('active'));
+                    sections.forEach(section => section.classList.remove('active'));
+                    this.classList.add('active');
+                    const sectionId = this.getAttribute('data-section');
+                    document.getElementById(`${sectionId}-section`).classList.add('active');
                 }
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please check your connection and try again.');
+            });
+        });
+
+        // Add chat button event listeners
+        document.querySelectorAll('.chat-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const mhpId = this.getAttribute('data-mhp-id');
+                const mhpName = this.getAttribute('data-mhp-name');
+                openChat(mhpId, mhpName);
+            });
+        });
+
+        // Add enter key event listener
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
             });
         }
-    }
-
-    // Add event listener for Enter key in message input
-    document.getElementById('messageInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
     });
-
     
 </script>
     <script src="sidebarnav.js"></script>
+    <script>
+        const userId = <?php echo json_encode($sender_id); ?>;
+    </script>
 </html>

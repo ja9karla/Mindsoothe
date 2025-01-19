@@ -4,7 +4,6 @@
   include("connect.php");
   $message = '';
 
-
 // Registration process
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signUp'])) {
     $fname = $_POST['fname'];
@@ -75,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
           $_SESSION['doctor_id'] = $doctor['id'];
           $_SESSION['doctor_first_name'] = $doctor['firstName'];
           $_SESSION['doctor_last_name'] = $doctor['lastName'];
-          header("Location: mhpdashboard.html");
+          header("Location: dashboard.html");
           exit();
       } else {
           // Invalid password
@@ -90,9 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
             </script>";
   }
 }
-
-
-
   // Logout process
   if (isset($_GET['logout'])) {
       session_destroy();
@@ -100,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
       exit();
   }
 
-  ?>
+?>
 
   <!DOCTYPE html>
   <html lang="en">

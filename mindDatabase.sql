@@ -103,6 +103,18 @@ CREATE TABLE Messages (
     status ENUM('sent', 'read') DEFAULT 'sent'
 );
 
+CREATE TABLE appointments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_id INT NOT NULL, -- Links to MHP
+    patient_id INT NOT NULL, -- Links to Users who become patients
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
+    status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES MHP(id) ON DELETE CASCADE,
+    FOREIGN KEY (patient_id) REFERENCES Users(id) ON DELETE CASCADE
+);
 
 CREATE TABLE admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
