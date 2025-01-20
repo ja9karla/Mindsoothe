@@ -1,4 +1,19 @@
 <?php
+// Allow requests from any origin (this allows localhost to make requests)
+header("Access-Control-Allow-Origin: *");
+
+// Allow specific methods (GET, POST, PUT, DELETE, etc.)
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+
+// Allow specific headers (Content-Type, Authorization, etc.)
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+// Handle OPTIONS preflight request (necessary for methods like POST)
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200); // Respond with a successful status code for preflight
+    exit;
+}
+
 include("auth.php");
 include("config.php");
 
@@ -8,7 +23,9 @@ ini_set('display_errors', 1);
 header('Content-Type: application/json');
 
 // Function to send JSON response
-function sendResponse($success, $data = null, $error = null) {
+// Function to send JSON response with status code
+function sendResponse($success, $data = null, $error = null, $statusCode = 200) {
+    http_response_code($statusCode);  // Set the HTTP status code
     echo json_encode([
         'success' => $success,
         'data' => $data,
@@ -16,6 +33,7 @@ function sendResponse($success, $data = null, $error = null) {
     ]);
     exit;
 }
+
 
 try {
     // Verify database connection
@@ -57,14 +75,31 @@ try {
                 sendResponse(false, null, 'Missing required parameters');
             }
 
-            $sql = "INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message) 
-                    VALUES (?, 'student', ?, 'MHP', ?)";
+            // Determine sender and receiver types and corresponding IDs
+            $sender_type = 'student';
+            $receiver_type = 'MHP';
+
+            // Get MHP details (for receiver)
+            $sql = "SELECT id FROM MHP WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $receiver_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $receiver_mhp_id = $row['id'];
+            } else {
+                sendResponse(false, null, 'MHP not found in database');
+            }
+
+            // Insert message into database
+            $sql = "INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message, sender_user_id, receiver_mhp_id) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $conn->prepare($sql);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $conn->error);
             }
-            $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
+            $stmt->bind_param("isissii", $sender_id, $sender_type, $receiver_id, $receiver_type, $message, $sender_id, $receiver_mhp_id);
             
             if ($stmt->execute()) {
                 sendResponse(true, [

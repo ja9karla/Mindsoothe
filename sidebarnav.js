@@ -32,4 +32,17 @@ window.onload = function() {
             window.location.href = 'mhp.php';
         });
     }
+    if (ProfileItem) {
+        ProfileItem.addEventListener('click', function() {
+            // Navigate to the "Profile" page when clicked
+            window.location.href = 'vacant.php';
+        });
+    }
+
+    if (chatItem) {
+        chatItem.addEventListener('click', function() {
+            // Navigate to the "Profile" page when clicked
+            window.location.href = 'chat.php';
+        });
+    }
 };

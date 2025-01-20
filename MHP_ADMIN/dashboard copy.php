@@ -4,7 +4,7 @@
     // Database connection
     include("../connect.php");
     error_reporting(E_ALL);
-ini_set('display_errors', 1);
+    ini_set('display_errors', 1);
     // Handle JSON requests
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetchDoctorName'])) {
         header('Content-Type: application/json');
@@ -206,74 +206,109 @@ ini_set('display_errors', 1);
         </div>
         </div>
 
-        
         <div id="chats-section" class="section">
-        <div class="flex h-screen">
-            <div class="w-1/4 bg-white border-r">
-                <div class="p-4 border-b">
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Search students..." class="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
-                    </div>
-                </div>
-                <ul id="userList" class="overflow-y-auto">
-                    <li class="p-4 flex items-center hover:bg-gray-100 cursor-pointer" onclick="startChat(1, 'John Doe')">
-                        <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
-                        <div class="flex-1">
-                            <p class="font-semibold">John Doe</p>
-                            <p class="text-sm text-gray-500">Latest message preview...</p>
+            <div class="flex h-screen">
+                <!-- Sidebar for student list -->
+                <div class="w-1/4 bg-white border-r">
+                    <div class="p-4 border-b">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search students..." 
+                                class="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300" 
+                                onkeyup="filterStudents()">
                         </div>
-                        <span class="text-sm text-gray-400">10:37 AM</span>
-                    </li>
-                </ul>
-            </div>
-            <div class="flex-1 flex flex-col">
-                <div class="p-4 border-b bg-white flex items-center justify-between">
-                    <h2 id="chat-header" class="text-lg font-semibold">Chat with Student</h2>
+                    </div>
+                    <ul id="userList" class="overflow-y-auto">
+                        <!-- Student list will be dynamically added here -->
+                    </ul>
                 </div>
-                <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
-                <div class="p-4 border-t bg-white flex items-center">
-                    <input type="hidden" id="student_id">
-                    <input type="text" id="message_input" placeholder="Type your message..." class="flex-1 p-3 border rounded-lg">
-                    <button onclick="sendMessage()" class="ml-3 p-3 bg-blue-500 text-white rounded-lg">Send</button>
+
+                <!-- Chat window -->
+                <div id="chatWindow" class="flex-1 bg-gray-100">
+                    <div class="max-w-4xl mx-auto h-full flex flex-col p-4">
+                        <div class="flex items-center mb-4 border-b pb-2">
+                            <h2 id="chatHeader" class="text-xl font-bold text-gray-800">Chat with Student</h2>
+                        </div>
+                        <div class="bg-white p-4 shadow-md rounded-lg flex flex-col flex-grow">
+                            <div id="chatMessages" class="flex-grow overflow-y-auto mb-4 p-4">
+                                <!-- Messages will be dynamically added here -->
+                            </div>
+                            <div class="flex items-center border-t pt-2">
+                                <input type="text" id="messageInput" placeholder="Type your message..." 
+                                    class="flex-grow border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                <button onclick="sendMessage()" 
+                                    class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition duration-300">
+                                    Send
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+            
     </div>
 
 
 
 
     <script>
-    var pusher = new Pusher('561b69476711bf54f56f', {
-        cluster: 'ap1',
-        encrypted: true
-    });
+        // Section switching functionality
+        const menuItems = document.querySelectorAll('.menu-item');
+        const sections = document.querySelectorAll('.section');
 
-    var channel;
-
-    // Section switching functionality (from your existing code)
-    const menuItems = document.querySelectorAll('.menu-item');
-    const sections = document.querySelectorAll('.section');
-
-    menuItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            menuItems.forEach(mi => mi.classList.remove('active'));
-            sections.forEach(section => section.classList.remove('active'));
-            this.classList.add('active');
-            const sectionId = this.getAttribute('data-section');
-            const sectionElem = document.getElementById(`${sectionId}-section`);
-            if (sectionElem) {
-                sectionElem.classList.add('active');
-            } else {
-                console.error(`Error: Section with ID ${sectionId}-section not found`);
-            }
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                menuItems.forEach(mi => mi.classList.remove('active'));
+                sections.forEach(section => section.classList.remove('active'));
+                            
+                this.classList.add('active');
+                            
+                const sectionId = this.getAttribute('data-section');
+                const sectionElem = document.getElementById(`${sectionId}-section`);
+                if (sectionElem) {
+                    sectionElem.classList.add('active');
+                } else {
+                    console.error(`Error: Section with ID ${sectionId}-section not found`);
+                }
+            });
         });
-    });
 
-    // Fetch client list and handle search input (from your existing code)
-    document.addEventListener('DOMContentLoaded', function() {
+        function fetchDoctorName() {
+            fetch('dashboard.php?fetchDoctorName=true')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.fname && data.lname) {
+                        const firstNameElem = document.getElementById('dashboardDoctorFirstName');
+                        const lastNameElem = document.getElementById('dashboardDoctorLastName');
+                        const departmentElem = document.getElementById('dashboardDepartment');
+                        const profileImageElem = document.getElementById('dashboardprofileImage');
+
+                        if (firstNameElem) firstNameElem.textContent = data.fname;
+                        if (lastNameElem) lastNameElem.textContent = data.lname;
+                        if (departmentElem) departmentElem.textContent = data.department;
+                        if (profileImageElem) profileImageElem.src = data.profile_image;
+                    } else {
+                        console.error('Error: Doctor name not found in response');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching doctor name:', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchDoctorName);
+       
+
+        document.addEventListener('DOMContentLoaded', function() {
+        fetchDoctorName();
+
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchQuery = this.value.toLowerCase();
             fetch(`MHPSeacrch.php?fetchUsers=true&search=${encodeURIComponent(searchQuery)}`)
@@ -292,8 +327,6 @@ ini_set('display_errors', 1);
                             </div>
                             <span class="text-sm text-gray-400">10:37 AM</span>
                         `;
-                        // Handle client selection when clicked
-                        li.addEventListener('click', () => openChatForMHP(user.id, user.firstName + ' ' + user.lastName));
                         userList.appendChild(li);
                     });
                 })
@@ -304,56 +337,51 @@ ini_set('display_errors', 1);
         document.getElementById('searchInput').dispatchEvent(new Event('input'));
     });
 
-    // Open chat for MHP when selecting a client
-    function openChatForMHP(studentId, studentName) {
-        document.getElementById('chat-header').innerText = 'Chat with ' + studentName;
-        document.getElementById('student_id').value = studentId;
-        document.getElementById('chat-box').innerHTML = ''; // Clear previous messages
+    var pusher = new Pusher('561b69476711bf54f56f', {
+            cluster: 'ap1',
+            encrypted: true
+        });
+        var channel = pusher.subscribe('chat-channel');
 
-        // Subscribe to Pusher channel for the selected client
-        channel = pusher.subscribe('chat_' + studentId);
+        function startChat(studentId, studentName) {
+            document.getElementById('chatHeader').innerText = 'Chat with ' + studentName;
+            document.getElementById('student_id').value = studentId;
+            document.getElementById('chat-box').innerHTML = '';
+        }
+
+        function sendMessage() {
+            let message = document.getElementById('message_input').value;
+            let studentId = document.getElementById('student_id').value;
+            if (message.trim() === '') {
+                alert('Please enter a message');
+                return;
+            }
+            fetch('messages_handler_mhp.php', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'send_message',
+                    student_id: studentId,
+                    message: message
+                }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('chat-box').innerHTML += '<div class="bg-blue-500 text-white rounded-lg p-3">You: ' + message + '</div>';
+                    document.getElementById('message_input').value = '';
+                } else {
+                    alert('Failed to send message');
+                }
+            });
+        }
+
         channel.bind('new-message', function(data) {
-            if (data.receiver_id == studentId) {
+            if (data.receiver_id == document.getElementById('student_id').value) {
                 document.getElementById('chat-box').innerHTML += '<div class="bg-gray-100 rounded-lg p-3">' + data.message + '</div>';
             }
         });
-    }
-
-    // Send message to MHP or client
-    function sendMessage() {
-        let message = document.getElementById('message_input').value;
-        let studentId = document.getElementById('student_id').value;
-        if (message.trim() === '') {
-            alert('Please enter a message');
-            return;
-        }
-
-        // Send message to the backend (messages_handler.php)
-        fetch('../messages_handler.php', {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'send_message',
-                student_id: studentId,
-                message: message
-            }),
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('chat-box').innerHTML += '<div class="bg-blue-500 text-white rounded-lg p-3">You: ' + message + '</div>';
-                document.getElementById('message_input').value = ''; // Clear input field
-            } else {
-                alert('Failed to send message');
-            }
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-            alert('Error sending message. Please try again.');
-        });
-    }
-</script>
-
-
+  
+    </script>
 </body>
 </html>

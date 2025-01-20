@@ -1,6 +1,22 @@
 <?php
-        include("auth.php");
-   // Your database connection file
+// Allow requests from any origin (this allows localhost to make requests)
+header("Access-Control-Allow-Origin: *");
+
+// Allow specific methods (GET, POST, PUT, DELETE, etc.)
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+
+// Allow specific headers (Content-Type, Authorization, etc.)
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+// Handle OPTIONS preflight request (necessary for methods like POST)
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200); // Respond with a successful status code for preflight
+    exit;
+}
+
+include("auth.php");
+// Your database connection file
+
 // First, get the student_id based on the email in the session
 if (isset($_SESSION['email'])) {
     $email = $_SESSION['email'];
@@ -12,6 +28,7 @@ if (isset($_SESSION['email'])) {
     
     if ($row = $result->fetch_assoc()) {
         $sender_id = $row['id'];
+        $sender_type = 'student'; // Sender is a student
     } else {
         echo json_encode([
             'success' => false,
@@ -31,7 +48,7 @@ if (isset($_SESSION['email'])) {
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
-    
+
     if ($action === 'send_message') {
         $receiver_id = isset($_POST['mhp_id']) ? (int)$_POST['mhp_id'] : null;
         $message = isset($_POST['message']) ? trim($_POST['message']) : '';
@@ -47,12 +64,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
         }
 
-        $sql = "INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message) 
-                VALUES (?, 'student', ?, 'MHP', ?)";
-        
+        // Get receiver details (MHP in this case)
+        $receiver_type = 'MHP';
+
+        // Fetch MHP details to get their ID
+        $sql = "SELECT id FROM MHP WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
+        $stmt->bind_param("i", $receiver_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            $receiver_mhp_id = $row['id'];
+        } else {
+            echo json_encode([
+                'success' => false,
+                'error' => 'MHP not found in database'
+            ]);
+            exit;
+        }
+
+        // Prepare query to insert into Messages table
+        $sql = "INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message, sender_user_id, receiver_mhp_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
         
+        // Bind the parameters based on the sender and receiver types
+        if ($sender_type === 'student') {
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("isissii", $sender_id, $sender_type, $receiver_id, $receiver_type, $message, $sender_id, $receiver_mhp_id);
+        }
+
         if ($stmt->execute()) {
             echo json_encode([
                 'success' => true,
@@ -71,8 +112,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -166,6 +207,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
                 <span class="menu-text ml-3">Mental Wellness Companion</span>
             </a>
+            <a href="#" class="menu-item flex items-center px-6 py-3 text-gray-600" data-section="profile" id="ProfileItem">
+                <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
+                <span class="menu-text ml-3">Profile</span>
+            </a>
+            <a href="#" class="menu-item flex items-center px-6 py-3 text-gray-600" data-section="chat" id="chatItem">
+                <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
+                <span class="menu-text ml-3">Chat</span>
+            </a>
         </nav>
 
         <!-- User Profile and Logout Section -->
@@ -211,11 +260,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <div class="text-sm text-gray-500">' . htmlspecialchars($row["department"]) . '</div>
                             </div>
                         </div>
-                        <div class="flex flex-wrap justify-center gap-2 mb-4">
-                            <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Stress</div>
-                            <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Anxiety</div>
-                            <div class="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">Depression</div>
-                        </div>
                         <div class="flex justify-center mt-4">
                             <button class="bg-white text-[#1cabe3] border-2 border-[#1cabe3] px-4 py-1 rounded hover:bg-[#1cabe3] hover:text-white transition duration-300 ease-in-out"
                                 onclick="openChat(\'' . htmlspecialchars($row["id"]) . '\', \'' . htmlspecialchars($row["fname"] . ' ' . $row["lname"]) . '\')">
@@ -259,198 +303,202 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->close();
     ?>
 
-<script>
-    const pusher = new Pusher('561b69476711bf54f56f', {
-    cluster: 'ap1',
-    encrypted: true
-    });
-
-    let currentChannel = null;
-
-    function initializePusher(userId) {
-        // Unsubscribe from previous channel if exists
-        if (currentChannel) {
-            pusher.unsubscribe(currentChannel.name);
-        }
-
-        // Subscribe to user's channel
-        const channelName = `chat_${userId}`;
-        currentChannel = pusher.subscribe(channelName);
-
-        // Bind to new message events
-        currentChannel.bind('new_message', function(data) {
-            // Only add message to chat if it's for the current conversation
-            if ((data.sender_id === currentMhpId && data.receiver_id === userId) ||
-                (data.sender_id === userId && data.receiver_id === currentMhpId)) {
-                
-                const messageType = data.sender_id === userId ? 'sent' : 'received';
-                const messageElement = createMessageElement(data.message, messageType);
-                
-                const chatMessages = document.getElementById('chatMessages');
-                chatMessages.appendChild(messageElement);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-        });
-    }
-
-    // Modify the openChat function
-    function openChat(mhpId, mhpName) {
-        currentMhpId = mhpId;
-        document.getElementById('listingView').classList.add('opacity-0');
-        document.getElementById('chatWindow').classList.remove('hidden');
-        document.getElementById('chatHeader').textContent = `Chat with ${mhpName}`;
-        
-        // Initialize Pusher with the current user's ID
-        initializePusher(userId); // You'll need to make userId available from PHP
-        
-        loadChatHistory(mhpId);
-    }
-
-    // Modify the sendMessage function
-    // Modify the sendMessage function
-    function sendMessage() {
-        const input = document.getElementById('messageInput');
-        const message = input.value.trim();
-        
-        if (message && currentMhpId) {
-            // Clear input immediately for better UX
-            input.value = '';
-            
-            const formData = new FormData();
-            formData.append('action', 'send_message');
-            formData.append('mhp_id', currentMhpId);
-            formData.append('message', message);
-            
-            fetch('messages_handler.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response from server:', data); // Log the response for debugging
-                if (data.success) {
-                    // Add the sent message to the chat window
-                    const messageElement = createMessageElement(message, 'sent');
-                    const chatMessages = document.getElementById('chatMessages');
-                    chatMessages.appendChild(messageElement);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                } else {
-                    console.error('Failed to send message:', data.error);
-                    alert('Failed to send message. Please try again.');
-                }
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please check your connection and try again.');
+        <script>
+            const pusher = new Pusher('561b69476711bf54f56f', {
+                cluster: 'ap1',
+                encrypted: true
             });
-        }
-    }
 
-    // Define createMessageElement function first
-    function createMessageElement(message, type) {
-        const div = document.createElement('div');
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        div.className = `mb-4 ${type === 'sent' ? 'flex justify-end' : 'flex justify-start'}`;
-        
-        const messageContainer = document.createElement('div');
-        messageContainer.className = `max-w-[70%] flex flex-col ${type === 'sent' ? 'items-end' : 'items-start'}`;
-        
-        const messageContent = document.createElement('div');
-        messageContent.className = `${type === 'sent' ? 'bg-[#1cabe3] text-white' : 'bg-gray-200 text-gray-800'} px-4 py-2 rounded-lg break-words`;
-        messageContent.textContent = message;
-        
-        const timeStamp = document.createElement('div');
-        timeStamp.className = 'text-xs text-gray-500 mt-1';
-        timeStamp.textContent = timestamp;
-        
-        messageContainer.appendChild(messageContent);
-        messageContainer.appendChild(timeStamp);
-        div.appendChild(messageContainer);
-        
-        return div;
-    }
+            let currentChannel = null;
+            let currentMhpId = null;
+            
+            function initializePusher(userId) {
+                // Unsubscribe from previous channel if exists
+                if (currentChannel) {
+                    pusher.unsubscribe(currentChannel.name);
+                }
 
-    let currentMhpId = null;
+                // Subscribe to the new channel based on the userId
+                const channelName = `chat_${userId}`;
+                currentChannel = pusher.subscribe(channelName);
 
-    
-
-    function closeChat() {
-        document.getElementById('listingView').classList.remove('opacity-0');
-        document.getElementById('chatWindow').classList.add('hidden');
-        document.getElementById('chatMessages').innerHTML = '';
-        currentMhpId = null;
-    }
-        function loadChatHistory(mhpId) {
-        const formData = new FormData();
-        formData.append('action', 'get_history');
-        formData.append('mhp_id', mhpId);
-        
-        fetch('messages_handler.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const chatMessages = document.getElementById('chatMessages');
-                chatMessages.innerHTML = '';
-                
-                data.messages.forEach(message => {
-                    const type = message.sender_type === 'student' ? 'sent' : 'received';
-                    const messageElement = createMessageElement(message.message, type);
-                    chatMessages.appendChild(messageElement);
+                // Bind to the 'new_message' event
+                currentChannel.bind('new_message', function(data) {
+                    // Only add message to chat if it's for the current conversation
+                    if ((data.sender_id === currentMhpId && data.receiver_id === userId) || 
+                        (data.sender_id === userId && data.receiver_id === currentMhpId)) {
+                        
+                        const messageType = data.sender_id === userId ? 'sent' : 'received';
+                        const messageElement = createMessageElement(data.message, messageType);
+                        
+                        const chatMessages = document.getElementById('chatMessages');
+                        chatMessages.appendChild(messageElement);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
                 });
-                
-                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-        })
-        .catch(error => console.error('Error loading chat history:', error));
-    }
 
+            // Function to open the chat window
+            function openChat(mhpId, mhpName) {
+            currentMhpId = mhpId;
+            document.getElementById('listingView').classList.add('opacity-0');
+            document.getElementById('chatWindow').classList.remove('hidden');
+            document.getElementById('chatHeader').textContent = `Chat with ${mhpName}`;
+            
+            // Fetch and load the chat history
+            loadChatHistory(mhpId);  // Reload the chat history when reopening the chat window
 
-    // Then add your DOMContentLoaded event listener
-    document.addEventListener('DOMContentLoaded', function() {
-        // Section switching functionality
-        const menuItems = document.querySelectorAll('.menu-item');
-        const sections = document.querySelectorAll('.section');
-        
-        menuItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (this.getAttribute('data-section')) {
-                    e.preventDefault();
-                    menuItems.forEach(mi => mi.classList.remove('active'));
-                    sections.forEach(section => section.classList.remove('active'));
-                    this.classList.add('active');
-                    const sectionId = this.getAttribute('data-section');
-                    document.getElementById(`${sectionId}-section`).classList.add('active');
-                }
-            });
-        });
-
-        // Add chat button event listeners
-        document.querySelectorAll('.chat-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const mhpId = this.getAttribute('data-mhp-id');
-                const mhpName = this.getAttribute('data-mhp-name');
-                openChat(mhpId, mhpName);
-            });
-        });
-
-        // Add enter key event listener
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) {
-            messageInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
+            // Initialize Pusher with the current user's ID
+            initializePusher(userId);  // Make sure userId is set correctly in the PHP code
         }
-    });
-    
-</script>
-    <script src="sidebarnav.js"></script>
-    <script>
-        const userId = <?php echo json_encode($sender_id); ?>;
-    </script>
+
+            // Function to close the chat window
+
+
+            // Function to send a message
+            function sendMessage() {
+                const input = document.getElementById('messageInput');
+                const message = input.value.trim();
+                
+                if (message && currentMhpId) {
+                    // Clear input immediately for better UX
+                    input.value = '';
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'send_message');
+                    formData.append('mhp_id', currentMhpId);
+                    formData.append('message', message);
+                    
+                    fetch('messages_handler.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Response from server:', data); // Log the response for debugging
+                        if (data.success) {
+                            // Add the sent message to the chat window
+                            const messageElement = createMessageElement(message, 'sent');
+                            const chatMessages = document.getElementById('chatMessages');
+                            chatMessages.appendChild(messageElement);
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        } else {
+                            console.error('Failed to send message:', data.error);
+                            alert('Failed to send message. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error sending message:', error);
+                        alert('Failed to send message. Please check your connection and try again.');
+                    });
+                }
+            }
+
+            // Function to create a message element
+            function createMessageElement(message, type) {
+                const div = document.createElement('div');
+                const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                div.className = `mb-4 ${type === 'sent' ? 'flex justify-end' : 'flex justify-start'}`;
+                
+                const messageContainer = document.createElement('div');
+                messageContainer.className = `max-w-[70%] flex flex-col ${type === 'sent' ? 'items-end' : 'items-start'}`;
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = `${type === 'sent' ? 'bg-[#1cabe3] text-white' : 'bg-gray-200 text-gray-800'} px-4 py-2 rounded-lg break-words`;
+                messageContent.textContent = message;
+                
+                const timeStamp = document.createElement('div');
+                timeStamp.className = 'text-xs text-gray-500 mt-1';
+                timeStamp.textContent = timestamp;
+                
+                messageContainer.appendChild(messageContent);
+                messageContainer.appendChild(timeStamp);
+                div.appendChild(messageContainer);
+                
+                return div;
+            }
+
+            // Function to close the chat window
+            function closeChat() {
+            document.getElementById('listingView').classList.remove('opacity-0');
+            document.getElementById('chatWindow').classList.add('hidden');
+            // Don't clear the messages here
+            // document.getElementById('chatMessages').innerHTML = '';  
+            currentMhpId = null;
+        }
+
+
+            // Function to load chat history
+            function loadChatHistory(mhpId) {
+                const formData = new FormData();
+                formData.append('action', 'get_history');
+                formData.append('mhp_id', mhpId);
+                
+                fetch('messages_handler.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const chatMessages = document.getElementById('chatMessages');
+                        chatMessages.innerHTML = '';
+                        
+                        data.messages.forEach(message => {
+                            const type = message.sender_type === 'student' ? 'sent' : 'received';
+                            const messageElement = createMessageElement(message.message, type);
+                            chatMessages.appendChild(messageElement);
+                        });
+                        
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                })
+                .catch(error => console.error('Error loading chat history:', error));
+            }
+
+            // DOMContentLoaded event listener to handle various actions
+            document.addEventListener('DOMContentLoaded', function() {
+                // Section switching functionality
+                const menuItems = document.querySelectorAll('.menu-item');
+                const sections = document.querySelectorAll('.section');
+                
+                menuItems.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        if (this.getAttribute('data-section')) {
+                            e.preventDefault();
+                            menuItems.forEach(mi => mi.classList.remove('active'));
+                            sections.forEach(section => section.classList.remove('active'));
+                            this.classList.add('active');
+                            const sectionId = this.getAttribute('data-section');
+                            document.getElementById(`${sectionId}-section`).classList.add('active');
+                        }
+                    });
+                });
+
+                // Add chat button event listeners
+                document.querySelectorAll('.chat-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const mhpId = this.getAttribute('data-mhp-id');
+                        const mhpName = this.getAttribute('data-mhp-name');
+                        openChat(mhpId, mhpName);
+                    });
+                });
+
+                // Add enter key event listener
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) {
+                    messageInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            sendMessage();
+                        }
+                    });
+                }
+            });
+
+            // Pass userId from PHP to JavaScript
+            const userId = <?php echo json_encode($sender_id); ?>;
+        </script>
+        <script src="sidebarnav.js"></script>
+</body>
 </html>

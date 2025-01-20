@@ -100,7 +100,11 @@ CREATE TABLE Messages (
     receiver_type ENUM('student', 'MHP') NOT NULL,
     message TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('sent', 'read') DEFAULT 'sent'
+    status ENUM('sent', 'read') DEFAULT 'sent',
+    FOREIGN KEY (sender_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES MHP(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES MHP(id) ON DELETE CASCADE
 );
 
 CREATE TABLE appointments (

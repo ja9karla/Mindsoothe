@@ -2,7 +2,7 @@
 session_start();
 
 // Database connection
-include("connect.php");
+include("../connect.php");
 
 // Check if doctor is logged in
 if (!isset($_SESSION['doctor_id'])) {
@@ -11,10 +11,19 @@ if (!isset($_SESSION['doctor_id'])) {
     exit();
 }
 
-// Get all users
-function getAllUsers($conn) {
-    $sql = "SELECT id, firstName, lastName FROM Users";
-    $result = $conn->query($sql);
+
+function getAllUsers($conn, $search = '') {
+    $sql = "SELECT id, firstName, lastName, Student_id FROM Users";
+    if ($search) {
+        $sql .= " WHERE firstName LIKE ? OR lastName LIKE ?";
+    }
+    $stmt = $conn->prepare($sql);
+    if ($search) {
+        $searchParam = '%' . $search . '%';
+        $stmt->bind_param('ss', $searchParam, $searchParam);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
     $users = [];
     while ($row = $result->fetch_assoc()) {
         $users[] = $row;
@@ -23,7 +32,8 @@ function getAllUsers($conn) {
 }
 
 if (isset($_GET['fetchUsers'])) {
-    $users = getAllUsers($conn);
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
+    $users = getAllUsers($conn, $search);
     echo json_encode($users);
     exit();
 }

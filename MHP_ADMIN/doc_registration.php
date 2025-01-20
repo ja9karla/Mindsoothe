@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signIn'])) {
           $_SESSION['doctor_id'] = $doctor['id'];
           $_SESSION['doctor_first_name'] = $doctor['firstName'];
           $_SESSION['doctor_last_name'] = $doctor['lastName'];
-          header("Location: dashboard.html");
+          header("Location: dashboard.php");
           exit();
       } else {
           // Invalid password
