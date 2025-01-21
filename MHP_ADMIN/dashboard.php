@@ -2,7 +2,7 @@
     session_start();
     
     // Database connection
-    include("../connect.php");
+    include("connect.php");
     error_reporting(E_ALL);
 ini_set('display_errors', 1);
     // Handle JSON requests
