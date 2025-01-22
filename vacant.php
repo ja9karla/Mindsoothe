@@ -95,10 +95,6 @@
                 <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
                 <span class="menu-text ml-3">Profile</span>
             </a>
-            <a href="#" class="menu-item flex items-center px-6 py-3 text-gray-600" data-section="chat" id="chatItem">
-                <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
-                <span class="menu-text ml-3">Chat</span>
-            </a>
         </nav>
 
         <!-- User Profile and Logout Section -->
@@ -177,7 +173,7 @@
     </div>
 </div>
 
-    <script>// Section switching functionality
+    <script>    // Section switching functionality
     document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addTimeForm');
     const startTimeInput = form.querySelector('[name="start_time"]');
@@ -346,8 +342,27 @@ async function deleteTimeSlot(id) {
 
 // Load time slots when page loads
 document.addEventListener('DOMContentLoaded', loadTimeSlots);
-</script>
-<script src="sidebarnav.js"></script>
+ // Section switching functionality
+ const menuItems = document.querySelectorAll('.menu-item');
+            const sections = document.querySelectorAll('.section');
+            
+            menuItems.forEach(item => {
+              item.addEventListener('click', function(e) {
+                if (this.getAttribute('data-section')) {
+                  e.preventDefault();
+                  
+                  menuItems.forEach(mi => mi.classList.remove('active'));
+                  sections.forEach(section => section.classList.remove('active'));
+                  
+                  this.classList.add('active');
+                  
+                  const sectionId = this.getAttribute('data-section');
+                  document.getElementById(`${sectionId}-section`).classList.add('active');
+                }
+              });
+            });
+    </script>
+    <script src="sidebarnav.js"></script>
     </div>
     </div>
 </body>

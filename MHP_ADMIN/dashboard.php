@@ -4,7 +4,7 @@
     // Database connection
     include("connect.php");
     error_reporting(E_ALL);
-ini_set('display_errors', 1);
+    ini_set('display_errors', 1);
     // Handle JSON requests
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetchDoctorName'])) {
         header('Content-Type: application/json');
@@ -208,37 +208,37 @@ ini_set('display_errors', 1);
 
         
         <div id="chats-section" class="section">
-        <div class="flex h-screen">
-            <div class="w-1/4 bg-white border-r">
-                <div class="p-4 border-b">
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Search students..." class="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
-                    </div>
-                </div>
-                <ul id="userList" class="overflow-y-auto">
-                    <li class="p-4 flex items-center hover:bg-gray-100 cursor-pointer" onclick="startChat(1, 'John Doe')">
-                        <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
-                        <div class="flex-1">
-                            <p class="font-semibold">John Doe</p>
-                            <p class="text-sm text-gray-500">Latest message preview...</p>
+            <div class="flex h-screen">
+                <div class="w-1/4 bg-white border-r">
+                    <div class="p-4 border-b">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search students..." class="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
                         </div>
-                        <span class="text-sm text-gray-400">10:37 AM</span>
-                    </li>
-                </ul>
-            </div>
-            <div class="flex-1 flex flex-col">
-                <div class="p-4 border-b bg-white flex items-center justify-between">
-                    <h2 id="chat-header" class="text-lg font-semibold">Chat with Student</h2>
+                    </div>
+                    <ul id="userList" class="overflow-y-auto">
+                        <li class="p-4 flex items-center hover:bg-gray-100 cursor-pointer" onclick="startChat(1, 'John Doe')">
+                            <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                            <div class="flex-1">
+                                <p class="font-semibold">John Doe</p>
+                                <p class="text-sm text-gray-500">Latest message preview...</p>
+                            </div>
+                            <span class="text-sm text-gray-400">10:37 AM</span>
+                        </li>
+                    </ul>
                 </div>
-                <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
-                <div class="p-4 border-t bg-white flex items-center">
-                    <input type="hidden" id="student_id">
-                    <input type="text" id="message_input" placeholder="Type your message..." class="flex-1 p-3 border rounded-lg">
-                    <button onclick="sendMessage()" class="ml-3 p-3 bg-blue-500 text-white rounded-lg">Send</button>
+                <div class="flex-1 flex flex-col">
+                    <div class="p-4 border-b bg-white flex items-center justify-between">
+                        <h2 id="chat-header" class="text-lg font-semibold">Chat with Student</h2>
+                    </div>
+                    <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+                    <div class="p-4 border-t bg-white flex items-center">
+                        <input type="hidden" id="student_id">
+                        <input type="text" id="message_input" placeholder="Type your message..." class="flex-1 p-3 border rounded-lg">
+                        <button onclick="sendMessage()" class="ml-3 p-3 bg-blue-500 text-white rounded-lg">Send</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 
 

@@ -2,9 +2,9 @@
     session_start();
     
     // Database connection
-    include("../connect.php");
+    include("connect.php");
     error_reporting(E_ALL);
-    ini_set('display_errors', 1);
+ini_set('display_errors', 1);
     // Handle JSON requests
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetchDoctorName'])) {
         header('Content-Type: application/json');
@@ -153,7 +153,7 @@
         </div>
     </div>
 
-    <div id="mainContent" class="main-content px-4 py-8">
+    <div id="mainContent" class="main-content px-4 py-8 ">
         <div class="container mx-auto">
         <div id="dashboard-section" class="section active">
         <!-- Doctor Profile Section -->
@@ -161,7 +161,7 @@
             <div id="dashboard-doctor-profile" class="bg-white shadow-md rounded-lg p-6 mb-6 flex items-center space-x-6">
                 <div class="flex-shrink-0">
                     <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                    <img  class="h-24 w-24 rounded-full" src="<?php echo htmlspecialchars($profileImage); ?>" alt="Profile Image">
+                        <img  class="h-24 w-24 rounded-full" src="<?php echo htmlspecialchars($profileImage); ?>" alt="Profile Image">
                     </div>
                 </div>
                 <div class="flex-grow">
@@ -206,65 +206,62 @@
         </div>
         </div>
 
+        
         <div id="chats-section" class="section">
-            <div class="flex h-screen">
-                <!-- Sidebar for student list -->
-                <div class="w-1/4 bg-white border-r">
-                    <div class="p-4 border-b">
-                        <div class="relative">
-                            <input type="text" id="searchInput" placeholder="Search students..." 
-                                class="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300" 
-                                onkeyup="filterStudents()">
-                        </div>
+        <div class="flex h-screen">
+            <div class="w-1/4 bg-white border-r">
+                <div class="p-4 border-b">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search students..." class="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
                     </div>
-                    <ul id="userList" class="overflow-y-auto">
-                        <!-- Student list will be dynamically added here -->
-                    </ul>
                 </div>
-
-                <!-- Chat window -->
-                <div id="chatWindow" class="flex-1 bg-gray-100">
-                    <div class="max-w-4xl mx-auto h-full flex flex-col p-4">
-                        <div class="flex items-center mb-4 border-b pb-2">
-                            <h2 id="chatHeader" class="text-xl font-bold text-gray-800">Chat with Student</h2>
+                <ul id="userList" class="overflow-y-auto">
+                    <li class="p-4 flex items-center hover:bg-gray-100 cursor-pointer" onclick="startChat(1, 'John Doe')">
+                        <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                        <div class="flex-1">
+                            <p class="font-semibold">John Doe</p>
+                            <p class="text-sm text-gray-500">Latest message preview...</p>
                         </div>
-                        <div class="bg-white p-4 shadow-md rounded-lg flex flex-col flex-grow">
-                            <div id="chatMessages" class="flex-grow overflow-y-auto mb-4 p-4">
-                                <!-- Messages will be dynamically added here -->
-                            </div>
-                            <div class="flex items-center border-t pt-2">
-                                <input type="text" id="messageInput" placeholder="Type your message..." 
-                                    class="flex-grow border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                <button onclick="sendMessage()" 
-                                    class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition duration-300">
-                                    Send
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                        <span class="text-sm text-gray-400">10:37 AM</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="flex-1 flex flex-col">
+                <div class="p-4 border-b bg-white flex items-center justify-between">
+                    <h2 id="chat-header" class="text-lg font-semibold">Chat with Student</h2>
+                </div>
+                <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+                <div class="p-4 border-t bg-white flex items-center">
+                    <input type="hidden" id="student_id">
+                    <input type="text" id="message_input" placeholder="Type your message..." class="flex-1 p-3 border rounded-lg">
+                    <button onclick="sendMessage()" class="ml-3 p-3 bg-blue-500 text-white rounded-lg">Send</button>
                 </div>
             </div>
         </div>
-            
+    </div>
     </div>
 
 
 
 
     <script>
-        // Section switching functionality
+        var pusher = new Pusher('561b69476711bf54f56f', {
+            cluster: 'ap1',
+            encrypted: true
+        });
+
+        var channel;
+
+        // Section switching functionality (from your existing code)
         const menuItems = document.querySelectorAll('.menu-item');
         const sections = document.querySelectorAll('.section');
 
         menuItems.forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                
                 menuItems.forEach(mi => mi.classList.remove('active'));
                 sections.forEach(section => section.classList.remove('active'));
-                            
                 this.classList.add('active');
-                            
                 const sectionId = this.getAttribute('data-section');
                 const sectionElem = document.getElementById(`${sectionId}-section`);
                 if (sectionElem) {
@@ -275,80 +272,54 @@
             });
         });
 
-        function fetchDoctorName() {
-            fetch('dashboard.php?fetchDoctorName=true')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.fname && data.lname) {
-                        const firstNameElem = document.getElementById('dashboardDoctorFirstName');
-                        const lastNameElem = document.getElementById('dashboardDoctorLastName');
-                        const departmentElem = document.getElementById('dashboardDepartment');
-                        const profileImageElem = document.getElementById('dashboardprofileImage');
-
-                        if (firstNameElem) firstNameElem.textContent = data.fname;
-                        if (lastNameElem) lastNameElem.textContent = data.lname;
-                        if (departmentElem) departmentElem.textContent = data.department;
-                        if (profileImageElem) profileImageElem.src = data.profile_image;
-                    } else {
-                        console.error('Error: Doctor name not found in response');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching doctor name:', error);
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', fetchDoctorName);
-       
-
+        // Fetch client list and handle search input (from your existing code)
         document.addEventListener('DOMContentLoaded', function() {
-        fetchDoctorName();
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const searchQuery = this.value.toLowerCase();
+                fetch(`MHPSeacrch.php?fetchUsers=true&search=${encodeURIComponent(searchQuery)}`)
+                    .then(response => response.json())
+                    .then(users => {
+                        const userList = document.getElementById('userList');
+                        userList.innerHTML = ''; // Clear the current list
+                        users.forEach(user => {
+                            const li = document.createElement('li');
+                            li.className = 'p-4 flex items-center hover:bg-gray-100 cursor-pointer';
+                            li.innerHTML = `
+                                <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">${user.firstName} ${user.lastName}</p>
+                                    <p class="text-sm text-gray-500">Latest message preview...</p>
+                                </div>
+                                <span class="text-sm text-gray-400">10:37 AM</span>
+                            `;
+                            // Handle client selection when clicked
+                            li.addEventListener('click', () => openChatForMHP(user.id, user.firstName + ' ' + user.lastName));
+                            userList.appendChild(li);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching users:', error));
+            });
 
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const searchQuery = this.value.toLowerCase();
-            fetch(`MHPSeacrch.php?fetchUsers=true&search=${encodeURIComponent(searchQuery)}`)
-                .then(response => response.json())
-                .then(users => {
-                    const userList = document.getElementById('userList');
-                    userList.innerHTML = ''; // Clear the current list
-                    users.forEach(user => {
-                        const li = document.createElement('li');
-                        li.className = 'p-4 flex items-center hover:bg-gray-100 cursor-pointer';
-                        li.innerHTML = `
-                            <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
-                            <div class="flex-1">
-                                <p class="font-semibold">${user.firstName} ${user.lastName}</p>
-                                <p class="text-sm text-gray-500">Latest message preview...</p>
-                            </div>
-                            <span class="text-sm text-gray-400">10:37 AM</span>
-                        `;
-                        userList.appendChild(li);
-                    });
-                })
-                .catch(error => console.error('Error fetching users:', error));
+            // Trigger the input event to load all users initially
+            document.getElementById('searchInput').dispatchEvent(new Event('input'));
         });
 
-        // Trigger the input event to load all users initially
-        document.getElementById('searchInput').dispatchEvent(new Event('input'));
-    });
-
-    var pusher = new Pusher('561b69476711bf54f56f', {
-            cluster: 'ap1',
-            encrypted: true
-        });
-        var channel = pusher.subscribe('chat-channel');
-
-        function startChat(studentId, studentName) {
-            document.getElementById('chatHeader').innerText = 'Chat with ' + studentName;
+        // Open chat for MHP when selecting a client
+        function openChatForMHP(studentId, studentName) {
+            document.getElementById('chat-header').innerText = 'Chat with ' + studentName;
             document.getElementById('student_id').value = studentId;
-            document.getElementById('chat-box').innerHTML = '';
+            document.getElementById('chat-box').innerHTML = ''; // Clear previous messages
+
+            // Subscribe to Pusher channel for the selected client
+            channel = pusher.subscribe('chat_' + studentId);
+            channel.bind('new-message', function(data) {
+                if (data.receiver_id == studentId) {
+                    document.getElementById('chat-box').innerHTML += '<div class="bg-gray-100 rounded-lg p-3">' + data.message + '</div>';
+                }
+            });
         }
 
+        // Send message to MHP or client
         function sendMessage() {
             let message = document.getElementById('message_input').value;
             let studentId = document.getElementById('student_id').value;
@@ -356,7 +327,9 @@
                 alert('Please enter a message');
                 return;
             }
-            fetch('messages_handler_mhp.php', {
+
+            // Send message to the backend (messages_handler.php)
+            fetch('../messages_handler.php', {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'send_message',
@@ -369,19 +342,18 @@
             .then(data => {
                 if (data.success) {
                     document.getElementById('chat-box').innerHTML += '<div class="bg-blue-500 text-white rounded-lg p-3">You: ' + message + '</div>';
-                    document.getElementById('message_input').value = '';
+                    document.getElementById('message_input').value = ''; // Clear input field
                 } else {
                     alert('Failed to send message');
                 }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                alert('Error sending message. Please try again.');
             });
         }
-
-        channel.bind('new-message', function(data) {
-            if (data.receiver_id == document.getElementById('student_id').value) {
-                document.getElementById('chat-box').innerHTML += '<div class="bg-gray-100 rounded-lg p-3">' + data.message + '</div>';
-            }
-        });
-  
     </script>
+
+
 </body>
 </html>

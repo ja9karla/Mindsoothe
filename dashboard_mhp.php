@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetchDoctorName'])) {
     </div>
 
     <!-- Main Content -->
-    <div class="main-content min-h-screen p-8">
+    <div class="main-content min-h-screen p-5">
         <!-- Dashboard Section -->
         <div id="dashboard-section" class="content-section active">
             <!-- Counselor Profile -->
@@ -172,40 +172,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetchDoctorName'])) {
         </div>
 
         <!-- Chats Section -->
-        <div id="chats-section" class="content-section">
-            <div class="flex h-screen">
+        <div id="chats-section" class="content-section h-screen flex">
+            <div class="flex h-screen bg-gray-100">
                 <!-- Left sidebar for chat user list -->
-                <div class="w-1/4 bg-white border-r">
-                    <div class="p-4 border-b">
+                <div class="w-1/4 bg-white border-r shadow-md flex flex-col">
+                    <div class="p-4 border-b bg-gray-50">
                         <div class="relative">
                             <input type="text" id="searchInput" placeholder="Search students..." 
-                                   class="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
+                                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">
                         </div>
                     </div>
-                    <ul id="userList" class="overflow-y-auto">
+                    <ul id="userList" class="overflow-y-auto flex-grow">
                         <!-- Dynamically loaded user list will appear here -->
+                        <li class="p-4 flex items-center cursor-pointer hover:bg-blue-50 transition-all border-b">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-800">John Doe</p>
+                                <p class="text-sm text-gray-500">Latest message preview...</p>
+                            </div>
+                            <span class="text-xs text-gray-400">10:37 AM</span>
+                        </li>
                     </ul>
                 </div>
 
                 <!-- Right side for actual chat messages -->
-                <div class="flex-1 flex flex-col">
-                    <div class="p-4 border-b bg-white flex items-center justify-between">
-                        <h2 id="chat-header" class="text-lg font-semibold">Chat with Student</h2>
+                <div class="flex flex-col flex-grow bg-white shadow-md rounded-lg">
+                    <div class="p-4 border-b bg-gray-50 flex items-center justify-between">
+                        <h2 id="chat-header" class="text-xl font-semibold text-gray-800">Chat with Student</h2>
                     </div>
-                    <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4">
-                        <!-- Chat messages will appear here -->
+
+                    <div id="chatMessages" class="flex-grow overflow-y-auto p-6 space-y-4 bg-gray-50 max-h-[calc(100vh-10rem)]">
+                        <!-- Messages will be dynamically added here -->
+                        <div class="flex items-end">
+                            <div class="bg-blue-500 text-white p-3 rounded-lg shadow-md max-w-xs">
+                                Hello, how can I help you today?
+                            </div>
+                        </div>
+                        <div class="flex justify-end items-end">
+                            <div class="bg-gray-200 p-3 rounded-lg shadow-md max-w-xs">
+                                I need some advice about stress management.
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-4 border-t bg-white flex items-center">
+
+                    <div class="p-4 border-t bg-gray-50 flex items-center">
                         <input type="hidden" id="student_id">
                         <input type="text" id="message_input" placeholder="Type your message..." 
-                               class="flex-1 p-3 border rounded-lg">
-                        <button onclick="sendMessage()" class="ml-3 p-3 bg-blue-500 text-white rounded-lg">
+                            class="flex-1 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <button onclick="sendMessage()" 
+                                class="ml-3 p-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all">
                             Send
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- Profile Update Confirmation Modal -->

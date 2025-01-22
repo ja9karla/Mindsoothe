@@ -171,10 +171,6 @@
                 <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
                 <span class="menu-text ml-3">Profile</span>
             </a>
-            <a href="#" class="menu-item flex items-center px-6 py-3 text-gray-600" data-section="chat" id="chatItem">
-                <img src="images/Vector.svg" alt="Mental Wellness Companion" class="w-5 h-5">
-                <span class="menu-text ml-3">Chat</span>
-            </a>
         </nav>
 
         <!-- User Profile and Logout Section -->
@@ -196,95 +192,95 @@
     </div>
 
     <!-- Main Content Area -->
-<div class="main-content flex flex-col p-6 bg-gray-100">
-    <!-- Post Input -->
-    <form method="POST" action="" class="flex items-center mb-6">
-        <input
-            type="text"
-            id="postText"
-            name="postText"
-            placeholder="What are you grateful for?"
-            class="flex-grow p-4 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-            type="submit"
-            id="postButton"
-            class="ml-4 px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow hover:bg-blue-600 transition"
-        >
-            Post
-        </button>
-    </form>
+    <div class="main-content flex flex-col p-6 bg-gray-100">
+        <!-- Post Input -->
+        <form method="POST" action="" class="flex items-center mb-6">
+            <input
+                type="text"
+                id="postText"
+                name="postText"
+                placeholder="What are you grateful for?"
+                class="flex-grow p-4 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+                type="submit"
+                id="postButton"
+                class="ml-4 px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow hover:bg-blue-600 transition"
+            >
+                Post
+            </button>
+        </form>
 
-    <!-- Posts Timeline -->
-    <div class="posts space-y-4" id="timeline">
-        <?php
-            // Fetch posts from Graceful_Thread
-            $fetchPosts = mysqli_query($conn, "SELECT GT.id, GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
-                                               FROM GracefulThread GT 
-                                               INNER JOIN Users UA ON GT.user_id = UA.id 
-                                               ORDER BY GT.created_at DESC");
+        <!-- Posts Timeline -->
+        <div class="posts space-y-4" id="timeline">
+            <?php
+                // Fetch posts from Graceful_Thread
+                $fetchPosts = mysqli_query($conn, "SELECT GT.id, GT.content, GT.created_at, UA.firstName, UA.lastName, UA.profile_image 
+                                                FROM GracefulThread GT 
+                                                INNER JOIN Users UA ON GT.user_id = UA.id 
+                                                ORDER BY GT.created_at DESC");
 
-            if (mysqli_num_rows($fetchPosts) > 0) {
-                while ($post = mysqli_fetch_assoc($fetchPosts)) {
-                    $postId = $post['id']; // Get the post ID for likes
-                    $postUser = $post['firstName'] . ' ' . $post['lastName'];
-                    $postImage = $post['profile_image'] ? $post['profile_image'] : 'images/blueuser.svg';
-                    $postContent = htmlspecialchars($post['content']);
-                    $postTime = date('F j, Y, g:i a', strtotime($post['created_at']));
+                if (mysqli_num_rows($fetchPosts) > 0) {
+                    while ($post = mysqli_fetch_assoc($fetchPosts)) {
+                        $postId = $post['id']; // Get the post ID for likes
+                        $postUser = $post['firstName'] . ' ' . $post['lastName'];
+                        $postImage = $post['profile_image'] ? $post['profile_image'] : 'images/blueuser.svg';
+                        $postContent = htmlspecialchars($post['content']);
+                        $postTime = date('F j, Y, g:i a', strtotime($post['created_at']));
 
-                    // Check if the current user liked this post
-                    $checkLikeQuery = mysqli_query($conn, "SELECT * FROM post_likes WHERE user_id='$userId' AND post_id='$postId'");
-                    $isLiked = mysqli_num_rows($checkLikeQuery) > 0;
+                        // Check if the current user liked this post
+                        $checkLikeQuery = mysqli_query($conn, "SELECT * FROM post_likes WHERE user_id='$userId' AND post_id='$postId'");
+                        $isLiked = mysqli_num_rows($checkLikeQuery) > 0;
 
-                    // Determine the correct Font Awesome icon class for the like button
-                    $iconClass = $isLiked ? 'fas fa-heart text-red-500' : 'far fa-heart text-gray-400';
+                        // Determine the correct Font Awesome icon class for the like button
+                        $iconClass = $isLiked ? 'fas fa-heart text-red-500' : 'far fa-heart text-gray-400';
 
-                    // Count the number of likes for the post
-                    $likeCountQuery = mysqli_query($conn, "SELECT COUNT(*) AS like_count FROM post_likes WHERE post_id='$postId'");
-                    $likeCountResult = mysqli_fetch_assoc($likeCountQuery);
-                    $likeCount = $likeCountResult['like_count'];
-        ?>
+                        // Count the number of likes for the post
+                        $likeCountQuery = mysqli_query($conn, "SELECT COUNT(*) AS like_count FROM post_likes WHERE post_id='$postId'");
+                        $likeCountResult = mysqli_fetch_assoc($likeCountQuery);
+                        $likeCount = $likeCountResult['like_count'];
+            ?>
 
-        <div class="post bg-white rounded-lg shadow p-4">
-            <!-- Post Header -->
-            <div class="post-header flex items-center mb-4">
-                <img
-                    src="<?php echo htmlspecialchars($postImage); ?>"
-                    alt="User Avatar"
-                    class="w-12 h-12 rounded-full border"
-                />
-                <div class="ml-4">
-                    <span class="block font-semibold text-gray-800"><?php echo htmlspecialchars($postUser); ?></span>
-                    <span class="block text-sm text-gray-500"><?php echo htmlspecialchars($postTime); ?></span>
+            <div class="post bg-white rounded-lg shadow p-4">
+                <!-- Post Header -->
+                <div class="post-header flex items-center mb-4">
+                    <img
+                        src="<?php echo htmlspecialchars($postImage); ?>"
+                        alt="User Avatar"
+                        class="w-12 h-12 rounded-full border"
+                    />
+                    <div class="ml-4">
+                        <span class="block font-semibold text-gray-800"><?php echo htmlspecialchars($postUser); ?></span>
+                        <span class="block text-sm text-gray-500"><?php echo htmlspecialchars($postTime); ?></span>
+                    </div>
+                </div>
+
+                <!-- Post Content -->
+                <div class="post-content mb-4">
+                    <p class="text-gray-700"><?php echo $postContent; ?></p>
+                </div>
+
+                <!-- Post Actions -->
+                <div class="post-actions flex items-center">
+                    <form method="POST" action="" class="flex items-center">
+                        <input type="hidden" name="post_id" value="<?php echo $postId; ?>">
+                        <!-- Like Button -->
+                        <button type="submit" name="like_button" class="focus:outline-none">
+                            <i class="<?php echo $iconClass; ?> text-lg"></i>
+                        </button>
+                    </form>
+                    <p class="ml-2 text-sm text-gray-600"><?php echo $likeCount; ?> people like this post</p>
                 </div>
             </div>
 
-            <!-- Post Content -->
-            <div class="post-content mb-4">
-                <p class="text-gray-700"><?php echo $postContent; ?></p>
-            </div>
-
-            <!-- Post Actions -->
-            <div class="post-actions flex items-center">
-                <form method="POST" action="" class="flex items-center">
-                    <input type="hidden" name="post_id" value="<?php echo $postId; ?>">
-                    <!-- Like Button -->
-                    <button type="submit" name="like_button" class="focus:outline-none">
-                        <i class="<?php echo $iconClass; ?> text-lg"></i>
-                    </button>
-                </form>
-                <p class="ml-2 text-sm text-gray-600"><?php echo $likeCount; ?> people like this post</p>
-            </div>
-        </div>
-
-        <?php
+            <?php
+                    }
+                } else {
+                    echo "<p class='text-gray-500 text-center'>No posts yet. Be the first to post!</p>";
                 }
-            } else {
-                echo "<p class='text-gray-500 text-center'>No posts yet. Be the first to post!</p>";
-            }
-        ?>
+            ?>
+        </div>
     </div>
-</div>
 
 
     <script>

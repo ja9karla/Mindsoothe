@@ -2,6 +2,8 @@ window.onload = function() {
     // Get the menu items by their IDs
     const gracefulThreadItem = document.getElementById('gracefulThreadItem');
     const mentalWellnessItem = document.getElementById('MentalWellness');
+    const ProfileItem = document.getElementById('ProfileItem');
+ 
 
     // Get the current page URL
     const currentPage = window.location.pathname;
@@ -14,7 +16,11 @@ window.onload = function() {
     } else if (currentPage.includes('gracefulThread.php') && gracefulThreadItem) {
         gracefulThreadItem.classList.add('clicked');
         console.log('Graceful-thread marked as clicked');
-    } else {
+    }   else if (currentPage.includes('vacant.php') && ProfileItem) {
+        ProfileItem.classList.add('clicked');
+        console.log('Vacant marked as clicked');
+    } 
+    else {
         console.log('Page not matched or user not logged in'); // Debug log
     }
 
@@ -29,20 +35,8 @@ window.onload = function() {
     if (mentalWellnessItem) {
         mentalWellnessItem.addEventListener('click', function() {
             // Navigate to the "MentalWellness" page when clicked
-            window.location.href = 'mhp.php';
-        });
-    }
-    if (ProfileItem) {
-        ProfileItem.addEventListener('click', function() {
-            // Navigate to the "Profile" page when clicked
             window.location.href = 'vacant.php';
         });
     }
-
-    if (chatItem) {
-        chatItem.addEventListener('click', function() {
-            // Navigate to the "Profile" page when clicked
-            window.location.href = 'chat.php';
-        });
-    }
+   
 };
