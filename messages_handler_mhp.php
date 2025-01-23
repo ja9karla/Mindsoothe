@@ -25,11 +25,12 @@ $pusher = new Pusher('561b69476711bf54f56f', '10b81fe10e9b7efc75ff', '1927783', 
 
 // Trigger Pusher event for real-time messaging
 $pusher->trigger("chat_$receiver_id", 'new-message', [
-    'sender_id' => $mhp_id,
+    'sender_id' => $sender_id,
     'receiver_id' => $receiver_id,
     'message' => $message,
     'timestamp' => date('Y-m-d H:i:s')
 ]);
+error_log("Pusher event triggered: chat_$receiver_id, new-message");
 
 try {
     // Check if database connection is valid

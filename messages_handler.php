@@ -22,6 +22,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 header('Content-Type: application/json');
 
+
 // Function to send JSON response
 // Function to send JSON response with status code
 function sendResponse($success, $data = null, $error = null, $statusCode = 200) {

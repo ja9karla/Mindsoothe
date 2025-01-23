@@ -313,6 +313,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             let currentMhpId = null;
             
             function initializePusher(userId) {
+                console.log('Initializing Pusher for userId:', userId);
                 // Unsubscribe from previous channel if exists
                 if (currentChannel) {
                     pusher.unsubscribe(currentChannel.name);
@@ -320,10 +321,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // Subscribe to the new channel based on the userId
                 const channelName = `chat_${userId}`;
+
+                console.log('Subscribing to channel:', channelName);
+
                 currentChannel = pusher.subscribe(channelName);
 
                 // Bind to the 'new_message' event
-                currentChannel.bind('new_message', function(data) {
+                currentChannel.bind('new-message', function(data) {
+                    console.log('Received message:', data);
                     // Only add message to chat if it's for the current conversation
                     if ((data.sender_id === currentMhpId && data.receiver_id === userId) || 
                         (data.sender_id === userId && data.receiver_id === currentMhpId)) {

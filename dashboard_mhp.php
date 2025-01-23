@@ -1,25 +1,24 @@
 <?php
-    session_start();
-    
-    // Include the database connection
-    include("connect.php");
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-    
-    // Function to fetch MHP details
-    if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetchDoctorName'])) {
+session_start();
+
+// Include the database connection
+include("connect.php");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Authentication Check
+if (!isset($_SESSION['doctor_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// AJAX Request Handling
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (isset($_GET['fetchDoctorName'])) {
         header('Content-Type: application/json');
-    
-        // Check if the doctor is logged in
-        if (!isset($_SESSION['doctor_id'])) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit();
-        }
     
         $doctor_id = $_SESSION['doctor_id'];
     
-        // Fetch doctor details
         $sql = "SELECT fname, lname, department, profile_image FROM MHP WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $doctor_id);
@@ -38,21 +37,14 @@
         exit();
     }
     
-    // Function to fetch messages for MHP
-    if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetchMessages'])) {
+    if (isset($_GET['fetchMessages'])) {
         header('Content-Type: application/json');
     
-        if (!isset($_SESSION['mhp_id'])) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit();
-        }
-    
-        $mhp_id = $_SESSION['mhp_id'];
+        $sender_id = $_SESSION['doctor_id'];
     
         $query = "SELECT * FROM Messages WHERE receiver_mhp_id = ? AND receiver_type = 'MHP' ORDER BY timestamp ASC";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $mhp_id);
+        $stmt->bind_param("i", $sender_id);
         $stmt->execute();
         $result = $stmt->get_result();
     
@@ -66,18 +58,14 @@
         $conn->close();
         exit();
     }
-    
-    // Function to send a message from MHP to student
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['receiver_id']) && isset($_POST['message'])) {
+}
+
+// POST Request Handling for sending messages
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['receiver_id']) && isset($_POST['message'])) {
         header('Content-Type: application/json');
     
-        if (!isset($_SESSION['mhp_id'])) {
-            http_response_code(401);
-            echo json_encode(["error" => "Unauthorized"]);
-            exit();
-        }
-    
-        $mhp_id = $_SESSION['mhp_id'];
+        $sender_id = $_SESSION['doctor_id'];
         $receiver_id = intval($_POST['receiver_id']);
         $message = trim($_POST['message']);
     
@@ -87,12 +75,19 @@
         }
     
         $query = "
-            INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message, sender_mhp_id, receiver_user_id)
-            VALUES (?, 'MHP', ?, 'student', ?, ?, ?)
+            INSERT INTO Messages (
+                sender_id, 
+                sender_type, 
+                receiver_id, 
+                receiver_type, 
+                message, 
+                sender_mhp_id, 
+                receiver_user_id
+            ) VALUES (?, 'MHP', ?, 'student', ?, ?, ?)
         ";
     
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("iisis", $mhp_id, $receiver_id, $message, $mhp_id, $receiver_id);
+        $stmt->bind_param("iisis", $sender_id, $receiver_id, $message, $sender_id, $receiver_id);
     
         if ($stmt->execute()) {
             echo json_encode(["success" => "Message sent successfully"]);
@@ -104,11 +99,7 @@
         $conn->close();
         exit();
     }
-    
-    // Default response for invalid requests
-    http_response_code(400);
-    echo json_encode(["error" => "Invalid request"]);
-    
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -120,6 +111,8 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Moment JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
+
     <style>
         .sidebar {
             transition: width 0.3s ease;
@@ -164,7 +157,7 @@
         <!-- Logo Section -->
         <div class="flex items-center p-6 border-b">
             <div class="w-15 h-10 rounded-full flex items-center justify-center">
-                <img src="uploads/Mindsoothe(2).svg" alt="Mindsoothe Logo">
+                <img src="images/Mindsoothe(2).svg" alt="Mindsoothe Logo">
             </div>
         </div>
 
@@ -210,7 +203,7 @@
                 <div class="flex items-center">
                     <div class="relative">
                         <!-- The counselor image will be loaded from the server -->
-                        <img id="counselor-image" src="/api/placeholder/100/100" 
+                        <img id="counselor-image" src="" 
                              alt="Profile Picture" class="w-24 h-24 rounded-full object-cover">
                         <label for="profile-upload" 
                                class="absolute bottom-0 right-0 bg-blue-500 rounded-full p-2 cursor-pointer hover:bg-blue-600">
@@ -325,91 +318,33 @@
     </div>
 
     <script>
-
-document.addEventListener("DOMContentLoaded", function () {
-    let studentId = null; // Will store the selected student's ID
-
-    // Fetch messages when chat opens
-    function loadMessages() {
-        fetch('dashboard_mhp.php')
-            .then(response => response.json())
-            .then(data => {
-                const chatMessages = document.getElementById("chatMessages");
-                chatMessages.innerHTML = ""; // Clear existing messages
-                data.forEach(msg => {
-                    const messageDiv = document.createElement("div");
-                    messageDiv.className = msg.sender_type === 'MHP' ? 'flex justify-end items-end' : 'flex items-end';
-                    messageDiv.innerHTML = `
-                        <div class="${msg.sender_type === 'MHP' ? 'bg-blue-500 text-white' : 'bg-gray-200'} p-3 rounded-lg shadow-md max-w-xs">
-                            ${msg.message}
-                        </div>
-                    `;
-                    chatMessages.appendChild(messageDiv);
-                });
-            })
-            .catch(err => console.error("Error loading messages:", err));
-    }
-
-    // Send message function
-    function sendMessage() {
-        const messageInput = document.getElementById("message_input");
-        if (!studentId || messageInput.value.trim() === "") return;
-
-        fetch('dashboard_mhp.php', {
-            method: "POST",
-            body: new URLSearchParams({
-                receiver_id: studentId,
-                message: messageInput.value
-            }),
-            headers: { "Content-Type": "application/x-www-form-urlencoded" }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadMessages();
-                messageInput.value = "";
-            } else {
-                alert("Failed to send message");
-            }
-        })
-        .catch(err => console.error("Error sending message:", err));
-    }
-
-    // Attach event listener to send button
-    document.querySelector("button[onclick='sendMessage()']").addEventListener("click", sendMessage);
-
-    // Set the student ID when selecting from the user list
-    document.querySelectorAll("#userList li").forEach(user => {
-        user.addEventListener("click", function () {
-            studentId = this.getAttribute("data-student-id");
-            document.getElementById("chat-header").textContent = "Chat with " + this.querySelector("p").textContent;
-            loadMessages();
-        });
-    });
-
-    // Poll for new messages every 5 seconds
-    setInterval(loadMessages, 5000);
-});
-
         // ------------------------
         // Global Variables
         // ------------------------
         let selectedImage = null;
+        let pusher;
+        let channel;
 
         // ------------------------
         // On Page Load
         // ------------------------
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Fetch Counselor Info
+            // 1. Initialize Pusher if needed
+            pusher = new Pusher('561b69476711bf54f56f', {
+                cluster: 'ap1',
+                encrypted: true
+            });
+
+            // 2. Fetch Counselor Info
             fetchCounselorInfo();
 
-            // 2. Set up Menu Navigation
+            // 3. Set up Menu Navigation
             setupMenuNavigation();
 
-            // 3. Set up Profile Upload
+            // 4. Set up Profile Upload
             setupProfileUpload();
 
-            // 4. Set up Chat User List Search
+            // 5. Set up Chat User List Search
             setupUserSearch();
         });
 
@@ -529,7 +464,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Perform an actual API call or simulate for students
+            // Simulate or perform an actual API call to search for students
             // Demo: We'll just display a placeholder card
             resultsContainer.classList.remove('hidden');
             resultsContainer.innerHTML = `
@@ -573,12 +508,6 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log(`Printing call slip for ${studentName}`);
         }
 
-        // If you want the "openChat" function from the Student Results search
-        // to lead to the same chat interface, you can link it properly here:
-        function openChat(studentName) {
-            alert('Opening chat with ' + studentName + '. Integrate with your real data as needed.');
-        }
-
         // ------------------------
         // Chat Functionality
         // ------------------------
@@ -606,8 +535,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             users.forEach(user => {
                 const li = document.createElement('li');
-                li.className = 'p-4 flex items-center hover:bg-gray-100 cursor-pointer border-b';
-                li.setAttribute("data-student-id", user.id);
+                li.className = 'p-4 flex items-center hover:bg-gray-100 cursor-pointer';
                 li.innerHTML = `
                     <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
                     <div class="flex-1">
@@ -628,32 +556,77 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('student_id').value = studentId;
             document.getElementById('chatMessages').innerHTML = ''; // Clear previous messages
 
-            // Manually load messages (polling approach used below)
-            loadMessagesFromServer(studentId);
+            // Unsubscribe from any previous channel to avoid duplication
+            if (channel) {
+                pusher.unsubscribe(channel.name);
+            }
+
+            // Subscribe to Pusher channel for the selected client
+            channel = pusher.subscribe('chat_' + studentId);
+
+            // Listen for new messages
+            channel.bind('new-message', function(data) {
+                // Here, 'data.receiver_id' might differ depending on your server structure
+                // Adjust the condition if you have a different approach
+                if (data.receiver_id == studentId) {
+                    document.getElementById('chatMessages').innerHTML += `
+                        <div class="bg-gray-100 rounded-lg p-3">
+                            ${data.message}
+                        </div>`;
+                }
+            });
         }
 
-        // Manual message load for a specific student
-        function loadMessagesFromServer(studentId) {
-            // Adjust to your actual GET endpoint if needed
-            fetch(`get_messages.php?student_id=${studentId}`)
-                .then(response => response.json())
-                .then(data => {
-                    const chatMessages = document.getElementById("chatMessages");
-                    chatMessages.innerHTML = "";
-                    data.forEach(msg => {
-                        const messageDiv = document.createElement("div");
-                        messageDiv.className = msg.sender_type === 'MHP' ? 'flex justify-end items-end' : 'flex items-end';
-                        messageDiv.innerHTML = `
-                            <div class="${msg.sender_type === 'MHP' ? 'bg-blue-500 text-white' : 'bg-gray-200'} p-3 rounded-lg shadow-md max-w-xs">
-                                ${msg.message}
+        // Send message to a specific user
+        function sendMessage() {
+            const message = document.getElementById('message_input').value.trim();
+            const studentId = document.getElementById('student_id').value;
+
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            console.log('Sending message:', {studentId, message});
+
+            fetch('dashboard_mhp.php', {
+                method: 'POST',
+                credentials: 'same-origin',  // Important for cookie/session preservation
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `receiver_id=${studentId}&message=${encodeURIComponent(message)}`
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    document.getElementById('chatMessages').innerHTML += `
+                        <div class="flex justify-end items-end mb-4">
+                            <div class="bg-blue-500 text-white rounded-lg p-3 max-w-xs">
+                                ${message}
                             </div>
-                        `;
-                        chatMessages.appendChild(messageDiv);
-                    });
-                })
-                .catch(error => console.error('Error loading messages:', error));
+                        </div>`;
+                    document.getElementById('message_input').value = '';
+                } else {
+                    alert(data.error || 'Failed to send message');
+                }
+            })
+            .catch(error => {
+                console.error('Full error:', error);
+                alert('Error sending message. Please try again.');
+            });
         }
 
+        // If you want the "openChat" function from the Student Results search
+        // to lead to the same chat interface, you can re-use openChatForMHP.
+        function openChat(studentName) {
+            // This could be extended if you have a direct link between 'studentName' and 'studentId'
+            alert('Opening chat with ' + studentName + '. Integrate with your real data as needed.');
+        }
     </script>
 </body>
 </html>
