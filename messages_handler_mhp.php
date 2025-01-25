@@ -9,31 +9,17 @@ header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Function to send a JSON response
 function sendResponse($success, $data = null, $error = null) {
     echo json_encode([
         'success' => $success,
-        'data' => $data,
-        'error' => $error
+        'data'    => $data,
+        'error'   => $error
     ]);
     exit;
 }
-$pusher = new Pusher('561b69476711bf54f56f', '10b81fe10e9b7efc75ff', '1927783', [
-    'cluster' => 'ap1',
-    'useTLS' => true
-]);
-
-// Trigger Pusher event for real-time messaging
-$pusher->trigger("chat_$receiver_id", 'new-message', [
-    'sender_id' => $sender_id,
-    'receiver_id' => $receiver_id,
-    'message' => $message,
-    'timestamp' => date('Y-m-d H:i:s')
-]);
-error_log("Pusher event triggered: chat_$receiver_id, new-message");
 
 try {
-    // Check if database connection is valid
+    // Check database connection
     if (!isset($conn) || $conn->connect_error) {
         throw new Exception("Database connection failed: " . ($conn->connect_error ?? 'Unknown error'));
     }
@@ -43,52 +29,65 @@ try {
         sendResponse(false, null, 'Not authenticated');
     }
 
-    $mhp_id = $_SESSION['doctor_id']; // Get MHP ID
+    // The MHP's ID from the MHP table
+    $mhp_id = (int) $_SESSION['doctor_id'];
 
-    // Get input from client-side
-    $input = json_decode(file_get_contents('php://input'), true);
-    $action = $input['action'] ?? '';
+    // The student's ID comes from POST as 'receiver_id'
+    $student_id = isset($_POST['receiver_id']) ? (int)$_POST['receiver_id'] : 0;
+    $message    = isset($_POST['message']) ? trim($_POST['message']) : '';
 
-    if ($action === 'send_message') {
-        // Get the receiver (student) ID and the message content
-        $receiver_id = isset($input['student_id']) ? (int)$input['student_id'] : null;
-        $message = isset($input['message']) ? trim($input['message']) : '';
-
-        // Validate input
-        if (!$receiver_id || empty($message)) {
-            sendResponse(false, null, 'Missing required parameters');
-        }
-
-        // Insert the message into the database
-        $stmt = $conn->prepare("INSERT INTO Messages (sender_id, sender_type, receiver_id, receiver_type, message) 
-                               VALUES (?, 'MHP', ?, 'student', ?)");
-        $stmt->bind_param("iis", $mhp_id, $receiver_id, $message);
-
-        if ($stmt->execute()) {
-            // Initialize Pusher for real-time messaging
-            $pusher = new Pusher('561b69476711bf54f56f', '10b81fe10e9b7efc75ff', '1927783', [
-                'cluster' => 'ap1',
-                'useTLS' => true
-            ]);
-
-            // Broadcast message to the correct channel (chat_{receiver_id})
-            $pusher->trigger("chat_$receiver_id", 'new-message', [
-                'sender_id' => $mhp_id,
-                'receiver_id' => $receiver_id,
-                'message' => $message,
-                'timestamp' => date('Y-m-d H:i:s') // Include timestamp for the message
-            ]);
-
-            // Send response back to frontend
-            sendResponse(true, [
-                'message_id' => $conn->insert_id,
-                'timestamp' => date('Y-m-d H:i:s')
-            ]);
-        } else {
-            sendResponse(false, null, 'Failed to send message');
-        }
+    // Validate input
+    if ($student_id === 0 || $message === '') {
+        sendResponse(false, null, 'Missing required parameters');
     }
+
+    // Insert using the new schema: (student_id, mhp_id, sender_type, receiver_type, message)
+    $sql = "
+        INSERT INTO Messages 
+            (student_id, mhp_id, sender_type, receiver_type, message)
+        VALUES 
+            (?, ?, 'MHP', 'student', ?)
+    ";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        throw new Exception("Prepare failed: " . $conn->error);
+    }
+    
+    // We have 3 placeholders: i, i, s
+    $stmt->bind_param("iis", $student_id, $mhp_id, $message);
+
+    if ($stmt->execute()) {
+        // Initialize Pusher for real-time messaging
+        $pusher = new Pusher(
+            '561b69476711bf54f56f', 
+            '10b81fe10e9b7efc75ff', 
+            '1927783',
+            [
+                'cluster' => 'ap1',
+                'useTLS'  => true
+            ]
+        );
+
+        // Broadcast message to the student's channel
+        // For example, rename 'sender_id' to 'mhp_id' for clarity
+        $pusher->trigger("chat_$student_id", 'new-message', [
+            'mhp_id'    => $mhp_id,
+            'student_id'=> $student_id,
+            'message'   => $message,
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+
+        // Send success response
+        sendResponse(true, [
+            'message_id' => $conn->insert_id,
+            'timestamp'  => date('Y-m-d H:i:s')
+        ]);
+    } else {
+        sendResponse(false, null, 'Failed to send message: ' . $stmt->error);
+    }
+
 } catch (Exception $e) {
     sendResponse(false, null, $e->getMessage());
 }
+
 ?>

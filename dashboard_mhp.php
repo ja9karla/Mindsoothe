@@ -11,49 +11,61 @@ if (!isset($_SESSION['doctor_id'])) {
     header('Location: login.php');
     exit();
 }
+$mhp_id = (int)$_SESSION['doctor_id'];  // The counselor's ID in your MHP table
 
 // AJAX Request Handling
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+    // 1) Fetch Doctor Name (from MHP table)
     if (isset($_GET['fetchDoctorName'])) {
         header('Content-Type: application/json');
-    
-        $doctor_id = $_SESSION['doctor_id'];
-    
+
         $sql = "SELECT fname, lname, department, profile_image FROM MHP WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $doctor_id);
+        $stmt->bind_param("i", $mhp_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         if ($result->num_rows > 0) {
             $doctor = $result->fetch_assoc();
             echo json_encode($doctor);
         } else {
             echo json_encode(['error' => 'Doctor not found']);
         }
-    
+
         $stmt->close();
         $conn->close();
         exit();
     }
-    
-    if (isset($_GET['fetchMessages'])) {
+
+    // 2) Fetch messages for a specific student and this MHP
+    if (isset($_GET['fetchMessages']) && isset($_GET['student_id'])) {
         header('Content-Type: application/json');
-    
-        $sender_id = $_SESSION['doctor_id'];
-    
-        $query = "SELECT * FROM Messages WHERE receiver_mhp_id = ? AND receiver_type = 'MHP' ORDER BY timestamp ASC";
+
+        $student_id = (int) $_GET['student_id'];
+
+        // We want all messages where (student_id = X AND mhp_id = Y).
+        // "sender_type" and "receiver_type" just describe who sent each row,
+        // but the conversation is always the same pair.
+        $query = "
+            SELECT *
+            FROM Messages
+            WHERE student_id = ? 
+              AND mhp_id = ?
+            ORDER BY timestamp ASC
+        ";
+
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $sender_id);
+        $stmt->bind_param("ii", $student_id, $mhp_id);
         $stmt->execute();
         $result = $stmt->get_result();
-    
+
         $messages = [];
         while ($row = $result->fetch_assoc()) {
             $messages[] = $row;
         }
-    
         echo json_encode($messages);
+
         $stmt->close();
         $conn->close();
         exit();
@@ -62,44 +74,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 // POST Request Handling for sending messages
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Example: The MHP (doctor) is sending a message to a student
     if (isset($_POST['receiver_id']) && isset($_POST['message'])) {
         header('Content-Type: application/json');
-    
-        $sender_id = $_SESSION['doctor_id'];
-        $receiver_id = intval($_POST['receiver_id']);
-        $message = trim($_POST['message']);
-    
-        if (empty($receiver_id) || empty($message)) {
+
+        $student_id = (int) $_POST['receiver_id'];
+        $message    = trim($_POST['message']);
+
+        if (empty($student_id) || empty($message)) {
             echo json_encode(["error" => "Invalid input"]);
             exit();
         }
-    
+
+        // For an MHP sending to a student:
+        $sender_type   = 'MHP';
+        $receiver_type = 'student';
+
         $query = "
             INSERT INTO Messages (
-                sender_id, 
-                sender_type, 
-                receiver_id, 
-                receiver_type, 
-                message, 
-                sender_mhp_id, 
-                receiver_user_id
-            ) VALUES (?, 'MHP', ?, 'student', ?, ?, ?)
+                student_id,
+                mhp_id,
+                sender_type,
+                receiver_type,
+                message
+            ) VALUES (?, ?, ?, ?, ?)
         ";
-    
+
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("iisis", $sender_id, $receiver_id, $message, $sender_id, $receiver_id);
-    
+        // We have 5 placeholders: (i, i, s, s, s)
+        $stmt->bind_param("iisss", 
+            $student_id,       // the student's ID from "Users"
+            $mhp_id,           // the MHP's ID from "MHP"
+            $sender_type,      // 'MHP'
+            $receiver_type,    // 'student'
+            $message
+        );
+
         if ($stmt->execute()) {
             echo json_encode(["success" => "Message sent successfully"]);
         } else {
-            echo json_encode(["error" => "Failed to send message"]);
+            echo json_encode(["error" => "Failed to send message: " . $stmt->error]);
         }
-    
+
         $stmt->close();
         $conn->close();
         exit();
     }
 }
+
+// --------------------------------------------
+// Removed the bulk "Fetch received messages" 
+// that automatically loops in the HTML below.
+// --------------------------------------------
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -111,6 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Moment JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <!-- Pusher JS -->
     <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
 
     <style>
@@ -202,7 +229,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
                 <div class="flex items-center">
                     <div class="relative">
-                        <!-- The counselor image will be loaded from the server -->
                         <img id="counselor-image" src="" 
                              alt="Profile Picture" class="w-24 h-24 rounded-full object-cover">
                         <label for="profile-upload" 
@@ -215,7 +241,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="file" id="profile-upload" class="hidden" accept="image/*">
                     </div>
                     <div class="ml-6">
-                        <!-- We will dynamically set the counselor's name and department -->
                         <h2 id="counselor-name" class="text-2xl font-bold">[Counselor Name]</h2>
                         <p id="counselor-dept" class="text-gray-600">Department: [Dept]</p>
                     </div>
@@ -253,6 +278,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <ul id="userList" class="overflow-y-auto flex-grow">
                         <!-- Dynamically loaded user list will appear here -->
+                        <!-- Example placeholder -->
+                        <!-- 
                         <li class="p-4 flex items-center cursor-pointer hover:bg-blue-50 transition-all border-b">
                             <div class="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
                             <div class="flex-1">
@@ -261,6 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <span class="text-xs text-gray-400">10:37 AM</span>
                         </li>
+                        -->
                     </ul>
                 </div>
 
@@ -270,18 +298,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h2 id="chat-header" class="text-xl font-semibold text-gray-800">Chat with Student</h2>
                     </div>
 
+                    <!-- 
+                        We REMOVED the bulk PHP loop that displayed all messages. 
+                        We'll insert messages via JS when a user is clicked in user list.
+                    -->
                     <div id="chatMessages" class="flex-grow overflow-y-auto p-6 space-y-4 bg-gray-50 max-h-[calc(100vh-10rem)]">
-                        <!-- Messages will be dynamically added here -->
-                        <div class="flex items-end">
-                            <div class="bg-blue-500 text-white p-3 rounded-lg shadow-md max-w-xs">
-                                Hello, how can I help you today?
-                            </div>
-                        </div>
-                        <div class="flex justify-end items-end">
-                            <div class="bg-gray-200 p-3 rounded-lg shadow-md max-w-xs">
-                                I need some advice about stress management.
-                            </div>
-                        </div>
+                        <!-- Messages from the selected student will appear here dynamically -->
                     </div>
 
                     <div class="p-4 border-t bg-gray-50 flex items-center">
@@ -329,7 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // On Page Load
         // ------------------------
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Initialize Pusher if needed
+            // 1. Initialize Pusher
             pusher = new Pusher('561b69476711bf54f56f', {
                 cluster: 'ap1',
                 encrypted: true
@@ -365,7 +387,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         return;
                     }
 
-                    // If your DB columns are named differently, adjust accordingly
                     const { fname, lname, department, profile_image } = data;
                     document.getElementById('counselor-name').textContent = `${fname} ${lname}`;
                     document.getElementById('counselor-dept').textContent = `Department: ${department}`;
@@ -389,11 +410,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
 
-                    // Remove 'active' from all menu items and sections
                     menuItems.forEach(mi => mi.classList.remove('active'));
                     sections.forEach(section => section.classList.remove('active'));
 
-                    // Activate the clicked menu item and corresponding section
                     this.classList.add('active');
                     const sectionId = this.getAttribute('data-section');
                     document.getElementById(`${sectionId}-section`).classList.add('active');
@@ -426,12 +445,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Confirm the profile update
         function confirmProfileUpdate() {
             if (selectedImage) {
-                // Example: if you want to upload it via AJAX
                 const formData = new FormData();
                 formData.append('profile_image', selectedImage);
                 formData.append('action', 'upload_profile_image');
 
-                // Replace 'profile_upload.php' with your actual endpoint
                 fetch('profile_upload.php', {
                     method: 'POST',
                     body: formData
@@ -439,7 +456,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update the UI to show new profile
                         document.getElementById('counselor-image').src = data.filepath;
                     } else {
                         console.error('Profile upload failed:', data.message);
@@ -447,13 +463,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 })
                 .catch(error => console.error('Error uploading profile:', error));
             }
-
-            // Hide the modal
             document.getElementById('update-modal').classList.remove('active');
         }
 
         // ------------------------
-        // Student Search
+        // Student Search (Dashboard)
         // ------------------------
         function searchStudent() {
             const searchInput = document.getElementById('student-search').value.trim();
@@ -464,14 +478,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return;
             }
 
-            // Simulate or perform an actual API call to search for students
-            // Demo: We'll just display a placeholder card
+            // Demo for searching a student. Replace with real API call if needed.
             resultsContainer.classList.remove('hidden');
             resultsContainer.innerHTML = `
                 <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div class="flex items-center mb-4">
                         <img src="/api/placeholder/64/64" alt="Student" 
-                             class="w-16 h-16 rounded-full object-cover">
+                            class="w-16 h-16 rounded-full object-cover">
                         <div class="ml-4">
                             <h3 class="font-semibold">${searchInput}</h3>
                             <p class="text-sm text-gray-600">BSCS - 3rd Year</p>
@@ -490,11 +503,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="flex justify-between">
                         <button onclick="openChat('${searchInput}')" 
-                                class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                             Message
                         </button>
                         <button onclick="printCallSlip('${searchInput}')" 
-                                class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
                             Print Call Slip
                         </button>
                     </div>
@@ -502,40 +515,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             `;
         }
 
-        // Print Call Slip
         function printCallSlip(studentName) {
-            // TODO: Implement call slip printing 
-            console.log(`Printing call slip for ${studentName}`);
+            console.log(`Printing call slip for ${studentName}...`);
+        }
+
+        // Reuse this if needed
+        function openChat(studentName) {
+            alert('Opening chat with ' + studentName + ' (add your real logic here).');
         }
 
         // ------------------------
         // Chat Functionality
         // ------------------------
-
-        // Setup the user list search
         function setupUserSearch() {
             const searchInput = document.getElementById('searchInput');
             searchInput.addEventListener('input', function() {
                 const query = searchInput.value.toLowerCase();
-                // Adjust path to your actual search endpoint if needed
+
+                // Replace with your actual endpoint if needed
+                // Example: MHPSeacrch.php?fetchUsers=true&search=...
                 fetch(`MHPSeacrch.php?fetchUsers=true&search=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(users => populateUserList(users))
                     .catch(error => console.error('Error fetching users:', error));
             });
 
-            // Trigger the input event to load all users initially
+            // Load all users initially
             searchInput.dispatchEvent(new Event('input'));
         }
 
-        // Populate user list in the chat sidebar
         function populateUserList(users) {
             const userList = document.getElementById('userList');
-            userList.innerHTML = ''; // Clear current list
+            userList.innerHTML = ''; 
 
             users.forEach(user => {
                 const li = document.createElement('li');
-                li.className = 'p-4 flex items-center hover:bg-gray-100 cursor-pointer';
+                li.className = 'p-4 flex items-center cursor-pointer hover:bg-gray-100 border-b';
                 li.innerHTML = `
                     <div class="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
                     <div class="flex-1">
@@ -544,88 +559,105 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <span class="text-sm text-gray-400">10:37 AM</span>
                 `;
-                // Handle click to open chat
+                // Open chat on click
                 li.addEventListener('click', () => openChatForMHP(user.id, user.firstName + ' ' + user.lastName));
                 userList.appendChild(li);
             });
         }
 
-        // Open chat with a specific user (MHP perspective)
+        // Open chat with a specific user
         function openChatForMHP(studentId, studentName) {
+            // 1) Set chat header
             document.getElementById('chat-header').innerText = 'Chat with ' + studentName;
+            // 2) Store student_id in a hidden input
             document.getElementById('student_id').value = studentId;
-            document.getElementById('chatMessages').innerHTML = ''; // Clear previous messages
+            // 3) Clear chatMessages
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            chatMessagesDiv.innerHTML = '';
 
-            // Unsubscribe from any previous channel to avoid duplication
+            // 4) Unsubscribe from previous channel if any
             if (channel) {
                 pusher.unsubscribe(channel.name);
             }
 
-            // Subscribe to Pusher channel for the selected client
+            // 5) Subscribe to new channel for that student
             channel = pusher.subscribe('chat_' + studentId);
-
-            // Listen for new messages
             channel.bind('new-message', function(data) {
-                // Here, 'data.receiver_id' might differ depending on your server structure
-                // Adjust the condition if you have a different approach
-                if (data.receiver_id == studentId) {
-                    document.getElementById('chatMessages').innerHTML += `
-                        <div class="bg-gray-100 rounded-lg p-3">
-                            ${data.message}
-                        </div>`;
-                }
+                // You can check data.sender_id, data.receiver_id, etc.
+                appendMessageToUI(data);
             });
+
+            // 6) Fetch existing chat from the server for this conversation
+            fetch(`?fetchMessages=true&student_id=${studentId}`)
+                .then(response => response.json())
+                .then(messages => {
+                    messages.forEach(msg => appendMessageToUI(msg));
+                })
+                .catch(error => console.error('Error fetching messages:', error));
         }
 
-        // Send message to a specific user
+        // Append a single message to chat UI
+        function appendMessageToUI(msg) {
+            const chatMessagesDiv = document.getElementById('chatMessages');
+
+            const isStudent = (msg.sender_type === 'student');
+            const bubbleClasses = isStudent
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-800';
+            const alignmentClasses = isStudent
+                ? 'justify-start'
+                : 'justify-end';
+
+            const messageHtml = `
+                <div class="flex ${alignmentClasses} mb-2">
+                    <div class="p-3 rounded-lg shadow-md max-w-xs ${bubbleClasses}">
+                        <p>${msg.message}</p>
+                        <span class="block text-xs mt-1 opacity-70">${msg.timestamp}</span>
+                    </div>
+                </div>
+            `;
+
+            chatMessagesDiv.insertAdjacentHTML('beforeend', messageHtml);
+            // Optional: scroll to bottom
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        // Send message to the currently open student
         function sendMessage() {
             const message = document.getElementById('message_input').value.trim();
             const studentId = document.getElementById('student_id').value;
 
             if (!message) {
-                alert('Please enter a message');
+                alert('Please enter a message.');
                 return;
             }
 
-            console.log('Sending message:', {studentId, message});
-
-            fetch('dashboard_mhp.php', {
+            fetch('messages_handler_mhp.php', {  // or messages_handler_mhp.php if you prefer
                 method: 'POST',
-                credentials: 'same-origin',  // Important for cookie/session preservation
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: `receiver_id=${studentId}&message=${encodeURIComponent(message)}`
             })
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('Response data:', data);
                 if (data.success) {
-                    document.getElementById('chatMessages').innerHTML += `
-                        <div class="flex justify-end items-end mb-4">
-                            <div class="bg-blue-500 text-white rounded-lg p-3 max-w-xs">
-                                ${message}
-                            </div>
-                        </div>`;
+                    // Append to UI as counselor's message
+                    const newMsg = {
+                        message: message,
+                        sender_type: 'MHP',
+                        timestamp: new Date().toISOString()
+                    };
+                    appendMessageToUI(newMsg);
                     document.getElementById('message_input').value = '';
                 } else {
                     alert(data.error || 'Failed to send message');
                 }
             })
             .catch(error => {
-                console.error('Full error:', error);
+                console.error('Error sending message:', error);
                 alert('Error sending message. Please try again.');
             });
-        }
-
-        // If you want the "openChat" function from the Student Results search
-        // to lead to the same chat interface, you can re-use openChatForMHP.
-        function openChat(studentName) {
-            // This could be extended if you have a direct link between 'studentName' and 'studentId'
-            alert('Opening chat with ' + studentName + '. Integrate with your real data as needed.');
         }
     </script>
 </body>
