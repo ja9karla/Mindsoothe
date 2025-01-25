@@ -94,17 +94,21 @@ CREATE TABLE patients (
 
 CREATE TABLE Messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    sender_id INT NOT NULL,
-    sender_type ENUM('student', 'MHP') NOT NULL,
-    receiver_id INT NOT NULL,
+
+    -- If the sender/receiver is a student, link here:
+    student_id INT NULL,
+    FOREIGN KEY (student_id) REFERENCES Users(id) ON DELETE CASCADE,
+
+    -- If the sender/receiver is an MHP, link here:
+    mhp_id INT NULL,
+    FOREIGN KEY (mhp_id) REFERENCES MHP(id) ON DELETE CASCADE,
+
+    sender_type   ENUM('student', 'MHP') NOT NULL,
     receiver_type ENUM('student', 'MHP') NOT NULL,
-    message TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('sent', 'read') DEFAULT 'sent',
-    FOREIGN KEY (sender_id) REFERENCES Users(id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id) REFERENCES Users(id) ON DELETE CASCADE,
-    FOREIGN KEY (sender_id) REFERENCES MHP(id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id) REFERENCES MHP(id) ON DELETE CASCADE
+
+    message   TEXT       NOT NULL,
+    timestamp TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+    status    ENUM('sent','read') DEFAULT 'sent'
 );
 
 CREATE TABLE appointments (
