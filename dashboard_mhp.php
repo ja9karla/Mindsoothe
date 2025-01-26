@@ -278,17 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <ul id="userList" class="overflow-y-auto flex-grow">
                         <!-- Dynamically loaded user list will appear here -->
-                        <!-- Example placeholder -->
-                        <!-- 
-                        <li class="p-4 flex items-center cursor-pointer hover:bg-blue-50 transition-all border-b">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
-                            <div class="flex-1">
-                                <p class="font-semibold text-gray-800">John Doe</p>
-                                <p class="text-sm text-gray-500">Latest message preview...</p>
-                            </div>
-                            <span class="text-xs text-gray-400">10:37 AM</span>
-                        </li>
-                        -->
+                        
                     </ul>
                 </div>
 
@@ -298,10 +288,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h2 id="chat-header" class="text-xl font-semibold text-gray-800">Chat with Student</h2>
                     </div>
 
-                    <!-- 
-                        We REMOVED the bulk PHP loop that displayed all messages. 
-                        We'll insert messages via JS when a user is clicked in user list.
-                    -->
                     <div id="chatMessages" class="flex-grow overflow-y-auto p-6 space-y-4 bg-gray-50 max-h-[calc(100vh-10rem)]">
                         <!-- Messages from the selected student will appear here dynamically -->
                     </div>
@@ -584,7 +570,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             channel = pusher.subscribe('chat_' + studentId);
             channel.bind('new-message', function(data) {
                 // You can check data.sender_id, data.receiver_id, etc.
-                appendMessageToUI(data);
+                // e.g., if data.sender_type !== 'MHP'
+                if (data.sender_type !== 'MHP') {
+                    appendMessageToUI(data);
+                }
             });
 
             // 6) Fetch existing chat from the server for this conversation
@@ -596,29 +585,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 .catch(error => console.error('Error fetching messages:', error));
         }
 
-        // Append a single message to chat UI
+        // Create a message bubble
+        function createMessageElement(message, type) {
+            const div = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            div.className = `mb-4 ${type === 'sent' ? 'flex justify-end' : 'flex justify-start'}`;
+
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `max-w-[70%] flex flex-col ${type === 'sent' ? 'items-end' : 'items-start'}`;
+
+            const messageContent = document.createElement('div');
+            messageContent.className = `px-4 py-2 rounded-lg break-words`;
+            messageContent.style.backgroundColor = type === 'sent' ? '#e6e6e6' : '#1cabe3';
+            messageContent.style.color = type === 'sent' ? '#333' : '#fff';
+            messageContent.textContent = message;
+
+            const timeStampElem = document.createElement('div');
+            timeStampElem.className = 'text-xs text-gray-500 mt-1';
+            timeStampElem.textContent = timestamp;
+
+            messageContainer.appendChild(messageContent);
+            messageContainer.appendChild(timeStampElem);
+            div.appendChild(messageContainer);
+
+            return div;
+        }
+
         function appendMessageToUI(msg) {
             const chatMessagesDiv = document.getElementById('chatMessages');
 
-            const isStudent = (msg.sender_type === 'student');
-            const bubbleClasses = isStudent
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-800';
-            const alignmentClasses = isStudent
-                ? 'justify-start'
-                : 'justify-end';
+            const messageElement = createMessageElement(msg.message, msg.sender_type === 'student' ? 'received' : 'sent');
+            chatMessagesDiv.appendChild(messageElement);
 
-            const messageHtml = `
-                <div class="flex ${alignmentClasses} mb-2">
-                    <div class="p-3 rounded-lg shadow-md max-w-xs ${bubbleClasses}">
-                        <p>${msg.message}</p>
-                        <span class="block text-xs mt-1 opacity-70">${msg.timestamp}</span>
-                    </div>
-                </div>
-            `;
-
-            chatMessagesDiv.insertAdjacentHTML('beforeend', messageHtml);
-            // Optional: scroll to bottom
+            // Scroll to the bottom of the chat
             chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         }
 
@@ -648,7 +648,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         sender_type: 'MHP',
                         timestamp: new Date().toISOString()
                     };
-                    appendMessageToUI(newMsg);
+                //  appendMessageToUI(newMsg);
                     document.getElementById('message_input').value = '';
                 } else {
                     alert(data.error || 'Failed to send message');
@@ -657,6 +657,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .catch(error => {
                 console.error('Error sending message:', error);
                 alert('Error sending message. Please try again.');
+            });
+        }
+
+        // Add "Enter key" event for sending message
+        const message_input = document.getElementById('message_input');
+        if (message_input) {
+            message_input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
             });
         }
     </script>

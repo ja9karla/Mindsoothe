@@ -207,8 +207,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <button onclick="closeChat()" class="text-[#1cabe3] font-semibold mr-4">&larr; Back</button>
                     <h2 id="chatHeader" class="text-xl font-bold text-[#1cabe3]"></h2>
                 </div>
-                <div class="bg-white p-4 shadow-md rounded-lg flex flex-col flex-grow">
-                    <div id="chatMessages" class="flex-grow overflow-y-auto mb-4 p-4">
+                <div class="bg-white p-4 shadow-md rounded-lg flex flex-col flex-grow min-h-0">
+                    <div id="chatMessages" class="flex-grow overflow-y-auto mb-4 p-4 bg-gray-50 rounded min-h-0">
                         <!-- Messages will be dynamically loaded here -->
                     </div>
                     <div class="flex items-center">
@@ -306,43 +306,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Send a message
         function sendMessage() {
-    const input   = document.getElementById('messageInput');
-    const message = input.value.trim();
+            const input   = document.getElementById('messageInput');
+            const message = input.value.trim();
 
-    if (!message || !currentMhpId) return;
+            if (!message || !currentMhpId) return;
 
-    input.value = '';  // Clear input field
+            input.value = '';  // Clear input field
 
-    const formData = new FormData();
-    formData.append('action', 'send_message');
-    formData.append('mhp_id', currentMhpId);
-    formData.append('message', message);
+            const formData = new FormData();
+            formData.append('action', 'send_message');
+            formData.append('mhp_id', currentMhpId);
+            formData.append('message', message);
 
-    fetch('', {  // Sending request to the same PHP file
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Response from server:', data);
-        if (data.success) {
-            // Append the sent message to chat immediately
-            const chatMessages = document.getElementById('chatMessages');
-            const messageElement = createMessageElement(message, 'sent');
-            chatMessages.appendChild(messageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight;  // Scroll to latest message
-            loadChatHistory(currentMhpId);  // Reload messages
-        } else {
-            console.error('Failed to send message:', data.error);
-            alert('Failed to send message. Please try again.');
+            fetch('', {  // Sending request to the same PHP file
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+                if (data.success) {
+                    // Append the sent message to chat immediately
+                    const chatMessages = document.getElementById('chatMessages');
+                    const messageElement = createMessageElement(message, 'sent');
+                    chatMessages.appendChild(messageElement);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;  // Scroll to latest message
+                    loadChatHistory(currentMhpId);  // Reload messages
+                } else {
+                    console.error('Failed to send message:', data.error);
+                    alert('Failed to send message. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error sending message:', error);
-    });
-}
-
-
 
         // Create a message bubble
         function createMessageElement(message, type) {
